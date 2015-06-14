@@ -64,8 +64,18 @@ public class TelnetSession implements SelectionKeyActions {
     }
 
     public void selected() throws IOException {
-        if (selectionKey.isConnectable()) {
-            channel.finishConnect();
+        if (channel.isConnectionPending()) {
+            if (selectionKey.isConnectable()) {
+                try {
+                    if (channel.finishConnect()) {
+                        listener.connected(this);
+                    }
+                } catch (IOException e) {
+                    listener.connectionFailed(this, e);
+                    doClose();
+                }
+            }
+            updateInterestOps();
             return;
         }
         if (!channel.isConnected()) {
@@ -102,6 +112,7 @@ public class TelnetSession implements SelectionKeyActions {
         if (selectionKey.isReadable()) {
             if (channel.read(inputBuffer) < 0) {
                 doClose();
+                return;
             }
             inputBuffer.flip();
             try {
@@ -118,13 +129,14 @@ public class TelnetSession implements SelectionKeyActions {
     private void updateInterestOps() {
         if (selectionKey != null && selectionKey.isValid()) {
             //noinspection MagicConstant
+            ;
             selectionKey.interestOps(interestOps());
         }
     }
 
     private void doClose() throws IOException {
         channel.close();
-        listener.connectionClosed();
+        listener.connectionClosed(this);
     }
 
     public boolean isShutdown() {
@@ -216,12 +228,15 @@ public class TelnetSession implements SelectionKeyActions {
 
     @Override
     public int interestOps() {
-        if (channel.isConnectionPending()) {
+        if (!channel.isConnected()) {
+            logger.debug("Waiting for connection.");
             return SelectionKey.OP_CONNECT;
         }
         if (output.peek() != null) {
-            return SelectionKey.OP_READ | SelectionKey.OP_WRITE;
+            logger.debug("Waiting to write.");
+            return SelectionKey.OP_WRITE;
         }
+        logger.debug("Waiting to read.");
         return SelectionKey.OP_READ;
     }
 
