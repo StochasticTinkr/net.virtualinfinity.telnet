@@ -30,6 +30,11 @@ public interface TelnetSessionListener {
     default void doGoAhead(TelnetSession session) {
     }
 
-    default void connectionClosed() {
+    default void connectionClosed(TelnetSession session) {
     }
+
+    default void connectionFailed(TelnetSession session, IOException e) {
+    }
+
+    void connected(TelnetSession session);
 }
