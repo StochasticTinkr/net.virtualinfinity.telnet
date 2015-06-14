@@ -8,11 +8,28 @@ import java.nio.ByteBuffer;
  */
 public interface TelnetSessionListener {
     void processData(ByteBuffer data, TelnetSession session) throws IOException;
-    void doBreak(TelnetSession session);
-    void doInterrupt(TelnetSession session);
-    void doAbortOutput(TelnetSession session);
-    void doAreYouThere(TelnetSession session);
-    void doEraseCharacter(TelnetSession session);
-    void doEraseLine(TelnetSession session);
-    void doGoAhead(TelnetSession session);
+
+    default void doBreak(TelnetSession session) {
+    }
+
+    default void doInterrupt(TelnetSession session) {
+    }
+
+    default void doAbortOutput(TelnetSession session) {
+    }
+
+    default void doAreYouThere(TelnetSession session) {
+    }
+
+    default void doEraseCharacter(TelnetSession session) {
+    }
+
+    default void doEraseLine(TelnetSession session) {
+    }
+
+    default void doGoAhead(TelnetSession session) {
+    }
+
+    default void connectionClosed() {
+    }
 }

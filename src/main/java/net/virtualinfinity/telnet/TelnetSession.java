@@ -66,6 +66,11 @@ public class TelnetSession implements SelectionKeyActions {
     public void selected() throws IOException {
         if (selectionKey.isConnectable()) {
             channel.finishConnect();
+            return;
+        }
+        if (!channel.isConnected()) {
+            doClose();
+            return;
         }
         trimOutputBuffer();
         updateInterestOps();
@@ -95,7 +100,9 @@ public class TelnetSession implements SelectionKeyActions {
             }
         }
         if (selectionKey.isReadable()) {
-            channel.read(inputBuffer);
+            if (channel.read(inputBuffer) < 0) {
+                doClose();
+            }
             inputBuffer.flip();
             try {
                 while (inputBuffer.hasRemaining()) {
@@ -109,7 +116,7 @@ public class TelnetSession implements SelectionKeyActions {
     }
 
     private void updateInterestOps() {
-        if (selectionKey != null) {
+        if (selectionKey != null && selectionKey.isValid()) {
             //noinspection MagicConstant
             selectionKey.interestOps(interestOps());
         }
@@ -117,6 +124,7 @@ public class TelnetSession implements SelectionKeyActions {
 
     private void doClose() throws IOException {
         channel.close();
+        listener.connectionClosed();
     }
 
     public boolean isShutdown() {
@@ -199,6 +207,11 @@ public class TelnetSession implements SelectionKeyActions {
 
     public void close() {
         output.add(null);
+    }
+
+    public void closeImmediately() throws IOException {
+        output.add(null);
+        doClose();
     }
 
     @Override
