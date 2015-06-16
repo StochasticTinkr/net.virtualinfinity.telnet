@@ -6,7 +6,7 @@
 
     <groupId>net.virtualinfinity</groupId>
     <artifactId>net.virtualinfinity.telnet</artifactId>
-    <version>1.0.2</version>
+    <version>dev</version>
 
     <packaging>jar</packaging>
 
