@@ -9,13 +9,13 @@ import java.io.IOException;
 final class SessionImpl implements Session {
     private final Options options;
     private final OutputChannel outputChannel;
-    private final SubNegotationOutputChannel subNegotationOutputChannel;
+    private final SubNegotiationOutputChannel subNegotiationOutputChannel;
     private final Closeable closer;
 
-    SessionImpl(Options options, OutputChannel outputChannel, SubNegotationOutputChannel subNegotationOutputChannel, Closeable closer) {
+    SessionImpl(Options options, OutputChannel outputChannel, SubNegotiationOutputChannel subNegotiationOutputChannel, Closeable closer) {
         this.options = options;
         this.outputChannel = outputChannel;
-        this.subNegotationOutputChannel = subNegotationOutputChannel;
+        this.subNegotiationOutputChannel = subNegotiationOutputChannel;
         this.closer = closer;
     }
 
@@ -30,8 +30,8 @@ final class SessionImpl implements Session {
     }
 
     @Override
-    public SubNegotationOutputChannel subNegotationOutputChannel() {
-        return subNegotationOutputChannel;
+    public SubNegotiationOutputChannel subNegotationOutputChannel() {
+        return subNegotiationOutputChannel;
     }
 
     @Override

@@ -5,6 +5,6 @@ import java.nio.ByteBuffer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public interface SubNegotationOutputChannel {
+public interface SubNegotiationOutputChannel {
     void sendSubNegotiation(int optionId, ByteBuffer data);
 }

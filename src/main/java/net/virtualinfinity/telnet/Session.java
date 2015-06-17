@@ -8,5 +8,5 @@ import java.io.Closeable;
 public interface Session extends Closeable {
     Options options();
     OutputChannel outputChannel();
-    SubNegotationOutputChannel subNegotationOutputChannel();
+    SubNegotiationOutputChannel subNegotationOutputChannel();
 }
