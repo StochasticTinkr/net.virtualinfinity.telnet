@@ -6,7 +6,7 @@ import java.util.function.ObjIntConsumer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public class OptionState {
+class OptionState {
     private static class EndState
     {
         /**
@@ -57,12 +57,12 @@ public class OptionState {
 
     private static class Responses {
         private final Function<OptionState, EndState> endGetter;
-        private final TelnetSession.Response requestDisable;
-        private final ObjIntConsumer<TelnetSession> enabled;
-        private final ObjIntConsumer<TelnetSession> disabled;
-        private final TelnetSession.Response requestEnable;
+        private final OptionManager.Response requestDisable;
+        private final ObjIntConsumer<OptionManager> enabled;
+        private final ObjIntConsumer<OptionManager> disabled;
+        private final ObjIntConsumer<OptionManager> requestEnable;
 
-        public Responses(Function<OptionState, EndState> endGetter, TelnetSession.Response requestDisable, TelnetSession.Response requestEnable, ObjIntConsumer<TelnetSession> enabled, ObjIntConsumer<TelnetSession> disabled) {
+        public Responses(Function<OptionState, EndState> endGetter, OptionManager.Response requestDisable, ObjIntConsumer<OptionManager> requestEnable, ObjIntConsumer<OptionManager> enabled, ObjIntConsumer<OptionManager> disabled) {
             this.endGetter = endGetter;
             this.requestDisable = requestDisable;
             this.requestEnable = requestEnable;
@@ -70,7 +70,7 @@ public class OptionState {
             this.disabled = disabled;
         }
 
-        public ObjIntConsumer<TelnetSession> remoteDisables(OptionState state) {
+        public ObjIntConsumer<OptionManager> remoteDisables(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.remoteWants = false;
             if (end.isEnabled()) {
@@ -80,10 +80,10 @@ public class OptionState {
                     return disabled(end);
                 }
             }
-            return TelnetSession.Response.NO_RESPONSE;
+            return OptionManager.Response.NO_RESPONSE;
         }
 
-        public ObjIntConsumer<TelnetSession> localDisables(OptionState state) {
+        public ObjIntConsumer<OptionManager> localDisables(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.localWants = false;
             if (end.remoteWants) {
@@ -92,12 +92,12 @@ public class OptionState {
             return disabled(end);
         }
 
-        public ObjIntConsumer<TelnetSession> disabled(EndState end) {
+        public ObjIntConsumer<OptionManager> disabled(EndState end) {
             end.enabled = false;
             return disabled;
         }
 
-        public ObjIntConsumer<TelnetSession> localWants(OptionState state) {
+        public ObjIntConsumer<OptionManager> localWants(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.allow(); // Force allowed, since we're advertising it.
             end.localWants();
@@ -107,12 +107,12 @@ public class OptionState {
             return requestEnable;
         }
 
-        public ObjIntConsumer<TelnetSession> enabled(EndState end) {
+        public ObjIntConsumer<OptionManager> enabled(EndState end) {
             end.enabled = true;
             return enabled;
         }
 
-        public ObjIntConsumer<TelnetSession> remoteWants(OptionState state) {
+        public ObjIntConsumer<OptionManager> remoteWants(OptionState state) {
             final EndState end = endGetter.apply(state);
             if (!end.isSupported()) {
                 return requestDisable;
@@ -120,7 +120,7 @@ public class OptionState {
             end.remoteWants();
             if (end.localWants) {
                 if (end.isEnabled()) {
-                    return TelnetSession.Response.NO_RESPONSE; // no change.
+                    return OptionManager.Response.NO_RESPONSE; // no change.
                 }
                 return enabled(end);
             }
@@ -129,12 +129,12 @@ public class OptionState {
     }
 
     private static final Responses localResponse =
-        new Responses(OptionState::local, TelnetSession.Response.SEND_WONT, TelnetSession.Response.SEND_WILL,
-            TelnetSession.Response.IS_ENABLED_LOCALLY, TelnetSession.Response.IS_DISABLED_LOCALLY);
+        new Responses(OptionState::local, OptionManager.Response.SEND_WONT, OptionManager.Response.SEND_WILL,
+            OptionManager.Response.IS_ENABLED_LOCALLY, OptionManager.Response.IS_DISABLED_LOCALLY);
 
     private static final Responses remoteResponse =
-        new Responses(OptionState::remote, TelnetSession.Response.SEND_DONT, TelnetSession.Response.SEND_DO,
-            TelnetSession.Response.IS_ENABLED_REMOTELY, TelnetSession.Response.IS_DISABLED_REMOTELY);
+        new Responses(OptionState::remote, OptionManager.Response.SEND_DONT, OptionManager.Response.SEND_DO,
+            OptionManager.Response.IS_ENABLED_REMOTELY, OptionManager.Response.IS_DISABLED_REMOTELY);
 
     private final EndState remote = new EndState();
     private final EndState local = new EndState();
@@ -146,35 +146,35 @@ public class OptionState {
     public EndState local() {
         return local;
     }
-    public ObjIntConsumer<TelnetSession> receivedDo() {
+    public ObjIntConsumer<OptionManager> receivedDo() {
         return localResponse.remoteWants(this);
     }
 
-    public ObjIntConsumer<TelnetSession> receivedWill() {
+    public ObjIntConsumer<OptionManager> receivedWill() {
         return remoteResponse.remoteWants(this);
     }
 
-    public ObjIntConsumer<TelnetSession> receivedDont() {
+    public ObjIntConsumer<OptionManager> receivedDont() {
         return localResponse.remoteDisables(this);
     }
 
-    public ObjIntConsumer<TelnetSession> receivedWont() {
+    public ObjIntConsumer<OptionManager> receivedWont() {
         return remoteResponse.remoteDisables(this);
     }
 
-    public ObjIntConsumer<TelnetSession> enableLocal() {
+    public ObjIntConsumer<OptionManager> enableLocal() {
         return localResponse.localWants(this);
     }
 
-    public ObjIntConsumer<TelnetSession> enableRemote() {
+    public ObjIntConsumer<OptionManager> enableRemote() {
         return remoteResponse.localWants(this);
     }
 
-    public ObjIntConsumer<TelnetSession> disableLocal() {
+    public ObjIntConsumer<OptionManager> disableLocal() {
         return localResponse.localDisables(this);
     }
 
-    public ObjIntConsumer<TelnetSession> disableRemote() {
+    public ObjIntConsumer<OptionManager> disableRemote() {
         return remoteResponse.localDisables(this);
     }
 
@@ -195,7 +195,7 @@ public class OptionState {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("{");
+        final StringBuilder builder = new StringBuilder("{");
         builder.append(remote().localWants ? "DO" : "DON'T").append("->");
         builder.append(remote().remoteWants ? "WILL" : "WON'T");
         builder.append(",");

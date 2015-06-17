@@ -8,11 +8,11 @@ import java.nio.ByteBuffer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public class TelnetDataReceiver implements ByteBufferConsumer {
-    private TelnetStreamState state = TelnetStreamState.initial();
-    private final TelnetCommandReceiver commandReceiver;
+class InputChannelDecoder implements ByteBufferConsumer {
+    private StreamState state = StreamState.initial();
+    private final CommandReceiver commandReceiver;
 
-    public TelnetDataReceiver(TelnetCommandReceiver commandReceiver) {
+    public InputChannelDecoder(CommandReceiver commandReceiver) {
         this.commandReceiver = commandReceiver;
     }
 
