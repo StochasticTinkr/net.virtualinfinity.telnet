@@ -11,11 +11,6 @@ public final class OptionSessionHandler<T> {
     private final OptionReceiver<T> optionReceiver;
     private T sessionData;
 
-
-    private interface ReceiverFunction<T, U, V, R> {
-        R apply(T t, U u, V v);
-    }
-
     public OptionSessionHandler(SubNegotiationReceiver<T> handler, OptionReceiver<T> optionReceiver) {
         this.subNegotiationReceiver = handler;
         this.optionReceiver = optionReceiver;

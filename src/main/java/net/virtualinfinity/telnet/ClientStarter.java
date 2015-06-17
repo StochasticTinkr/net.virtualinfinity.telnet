@@ -3,9 +3,7 @@ package net.virtualinfinity.telnet;
 import net.virtualinfinity.nio.*;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.util.function.Consumer;
 
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
@@ -33,7 +31,9 @@ public class ClientStarter {
                 try {
                     final OutputBuffer outputBuffer = new OutputBuffer();
                     final OptionManager optionManager = new OptionManager(outputBuffer::append);
-                    final Session session = new SessionImpl(optionManager.options(), new OutputChannel(outputBuffer::append));
+                    final OutputChannel outputChannel = new OutputChannel(outputBuffer::append);
+                    final SubNegotationOutputChannel subNegotationOutputChannel = optionManager.subNegotitationOutputChannel(outputChannel);
+                    final Session session = new SessionImpl(optionManager.options(), outputChannel, subNegotationOutputChannel, socketChannel::close);
                     final CommandRouter commandReceiver = new CommandRouter(sessionListener, new CommandDataRouter(sessionListener), optionManager);
                     final ClientSessionConnectionListener conListener = new ClientSessionConnectionListener(sessionListener, session);
                     final InputChannelDecoder decoder = new InputChannelDecoder(commandReceiver);
