@@ -1,6 +1,8 @@
 package net.virtualinfinity.telnet;
 
+import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
+import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -13,7 +15,7 @@ import java.util.function.ObjIntConsumer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-class OptionManager implements SubNegotationOutputChannel {
+class OptionManager {
     private static final Logger logger = Logger.getLogger(OptionManager.class);
     private final Consumer<ByteBuffer> output;
     private final OptionState[] optionStates = new OptionState[256];
@@ -98,14 +100,6 @@ class OptionManager implements SubNegotationOutputChannel {
         output.accept(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, command, optionId}));
     }
 
-    @Override
-    public void sendSubNegotiation(int optionId, ByteBuffer data) {
-        sendOptionCommand(TelnetConstants.SB, (byte)optionId);
-        output.accept(data);
-        output.accept(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, TelnetConstants.SE}));
-    }
-
-
     private void logOptionCommand(String command, int optionId) {
         if (logger.isDebugEnabled()) {
             final Option option = Option.byId(optionId);
@@ -117,34 +111,9 @@ class OptionManager implements SubNegotationOutputChannel {
         return optionSessionHandler.get(optionId);
     }
 
-    enum Response implements ObjIntConsumer<OptionManager> {
-        SEND_WONT(OptionManager::sendWont),
-        IS_ENABLED_LOCALLY(OptionManager::enabledLocally),
-        IS_DISABLED_LOCALLY(OptionManager::disabledLocally),
-        NO_RESPONSE((optionManager, value) -> {}),
-        SEND_DO(OptionManager::sendDo),
-        IS_ENABLED_REMOTELY(OptionManager::enabledRemotely),
-        IS_DISABLED_REMOTELY(OptionManager::disabledRemotely),
-        SEND_DONT(OptionManager::sendDont),
-        SEND_WILL(OptionManager::sendWill),
-        ;
+    SubNegotationOutputChannel subNegotitationOutputChannel(OutputChannel outputChannel) {
+        return new SubNegotationOutputChannelImpl(this, outputChannel);
 
-        private final ObjIntConsumer<OptionManager> responder;
-
-        Response(ObjIntConsumer<OptionManager> responder) {
-            this.responder = responder;
-        }
-
-        public void accept(OptionManager optionManager, int optionId) {
-            responder.accept(optionManager, optionId);
-        }
-
-        public ObjIntConsumer<OptionManager> and(ObjIntConsumer<OptionManager> otherResponse) {
-            return (optionManager, value) -> {
-                accept(optionManager, value);
-                otherResponse.accept(optionManager, value);
-            };
-        }
     }
 
     private OptionState optionState(HasOptionCode option) {
@@ -170,12 +139,18 @@ class OptionManager implements SubNegotationOutputChannel {
             public OptionHandle option(int optionCode) {
                 return option(() -> optionCode);
             }
+
+            @Override
+            public <T, R extends SubNegotiationReceiver<T> & OptionReceiver<T>> OptionHandle installOptionReceiver(R receiver) {
+                optionSessionHandler.put(receiver.optionCode(), OptionSessionHandler.of(receiver));
+                return option(receiver);
+            }
         };
     }
+
     private void updateOptionState(HasOptionCode option, Function<OptionState, ObjIntConsumer<OptionManager>> command) {
         command.apply(optionState(option.optionCode())).accept(this, option.optionCode());
     }
-
     private void requestRemoteEnable(HasOptionCode option) {
         updateOptionState(option, OptionState::enableRemote);
     }
@@ -192,10 +167,18 @@ class OptionManager implements SubNegotationOutputChannel {
         updateOptionState(option, OptionState::disableLocal);
     }
 
+    private boolean isEnabledRemotely(HasOptionCode option) {
+        return optionState(option).isEnabledRemotely();
+    }
+
+    private boolean isEnabledLocally(HasOptionCode option) {
+        return optionState(option).isEnabledLocally();
+    }
+
     private static class OptionHandleImpl implements OptionHandle {
+
         private final HasOptionCode option;
         private final OptionManager optionManager;
-
         private OptionHandleImpl(HasOptionCode option, OptionManager optionManager) {
             this.option = option;
             this.optionManager = optionManager;
@@ -252,15 +235,54 @@ class OptionManager implements SubNegotationOutputChannel {
 
             return this;
         }
+
     }
 
-    private boolean isEnabledRemotely(HasOptionCode option) {
-        return optionState(option).isEnabledRemotely();
+    enum Response implements ObjIntConsumer<OptionManager> {
+        SEND_WONT(OptionManager::sendWont),
+        IS_ENABLED_LOCALLY(OptionManager::enabledLocally),
+        IS_DISABLED_LOCALLY(OptionManager::disabledLocally),
+        NO_RESPONSE((optionManager, value) -> {}),
+        SEND_DO(OptionManager::sendDo),
+        IS_ENABLED_REMOTELY(OptionManager::enabledRemotely),
+        IS_DISABLED_REMOTELY(OptionManager::disabledRemotely),
+        SEND_DONT(OptionManager::sendDont),
+        SEND_WILL(OptionManager::sendWill),
+        ;
+
+        private final ObjIntConsumer<OptionManager> responder;
+
+        Response(ObjIntConsumer<OptionManager> responder) {
+            this.responder = responder;
+        }
+
+        public void accept(OptionManager optionManager, int optionId) {
+            responder.accept(optionManager, optionId);
+        }
+
+        public ObjIntConsumer<OptionManager> and(ObjIntConsumer<OptionManager> otherResponse) {
+            return (optionManager, value) -> {
+                accept(optionManager, value);
+                otherResponse.accept(optionManager, value);
+            };
+        }
     }
 
-    private boolean isEnabledLocally(HasOptionCode option) {
-        return optionState(option).isEnabledLocally();
+
+    private final class SubNegotationOutputChannelImpl implements SubNegotationOutputChannel {
+        private final OptionManager optionManager;
+        private final OutputChannel outputChannel;
+
+        public SubNegotationOutputChannelImpl(OptionManager optionManager, OutputChannel outputChannel) {
+            this.optionManager = optionManager;
+            this.outputChannel = outputChannel;
+        }
+
+        @Override
+        public void sendSubNegotiation(int optionId, ByteBuffer data) {
+            optionManager.sendOptionCommand(TelnetConstants.SB, (byte) optionId);
+            outputChannel.write(data);
+            optionManager.output.accept(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, TelnetConstants.SE}));
+        }
     }
-
-
 }
