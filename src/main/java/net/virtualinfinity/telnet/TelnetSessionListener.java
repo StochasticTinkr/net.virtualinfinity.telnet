@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public interface TelnetSessionListener {
-    void processData(ByteBuffer data, TelnetSession session) throws IOException;
+    void processData(ByteBuffer data, TelnetSession session);
 
     default void doBreak(TelnetSession session) {
     }
