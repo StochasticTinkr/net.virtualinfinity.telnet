@@ -112,7 +112,7 @@ class OptionManager {
     }
 
     SubNegotiationOutputChannel subNegotitationOutputChannel(OutputChannel outputChannel) {
-        return new SubNegotationOutputChannelImpl(this, outputChannel);
+        return new SubNegotiationOutputChannelImpl(this, outputChannel);
 
     }
 
@@ -269,11 +269,11 @@ class OptionManager {
     }
 
 
-    private final class SubNegotationOutputChannelImpl implements SubNegotiationOutputChannel {
+    private final class SubNegotiationOutputChannelImpl implements SubNegotiationOutputChannel {
         private final OptionManager optionManager;
         private final OutputChannel outputChannel;
 
-        public SubNegotationOutputChannelImpl(OptionManager optionManager, OutputChannel outputChannel) {
+        public SubNegotiationOutputChannelImpl(OptionManager optionManager, OutputChannel outputChannel) {
             this.optionManager = optionManager;
             this.outputChannel = outputChannel;
         }

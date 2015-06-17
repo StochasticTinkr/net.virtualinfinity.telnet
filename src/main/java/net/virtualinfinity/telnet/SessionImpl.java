@@ -30,7 +30,7 @@ final class SessionImpl implements Session {
     }
 
     @Override
-    public SubNegotiationOutputChannel subNegotationOutputChannel() {
+    public SubNegotiationOutputChannel subNegotiationOutputChannel() {
         return subNegotiationOutputChannel;
     }
 
