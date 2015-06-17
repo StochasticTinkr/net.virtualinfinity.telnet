@@ -32,8 +32,8 @@ public class ClientStarter {
                     final OutputBuffer outputBuffer = new OutputBuffer();
                     final OptionManager optionManager = new OptionManager(outputBuffer::append);
                     final OutputChannel outputChannel = new OutputChannel(outputBuffer::append);
-                    final SubNegotationOutputChannel subNegotationOutputChannel = optionManager.subNegotitationOutputChannel(outputChannel);
-                    final Session session = new SessionImpl(optionManager.options(), outputChannel, subNegotationOutputChannel, socketChannel::close);
+                    final SubNegotiationOutputChannel subNegotiationOutputChannel = optionManager.subNegotitationOutputChannel(outputChannel);
+                    final Session session = new SessionImpl(optionManager.options(), outputChannel, subNegotiationOutputChannel, socketChannel::close);
                     final CommandRouter commandReceiver = new CommandRouter(sessionListener, new CommandDataRouter(sessionListener), optionManager);
                     final ClientSessionConnectionListener conListener = new ClientSessionConnectionListener(sessionListener, session);
                     final InputChannelDecoder decoder = new InputChannelDecoder(commandReceiver);

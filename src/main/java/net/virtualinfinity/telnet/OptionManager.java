@@ -111,7 +111,7 @@ class OptionManager {
         return optionSessionHandler.get(optionId);
     }
 
-    SubNegotationOutputChannel subNegotitationOutputChannel(OutputChannel outputChannel) {
+    SubNegotiationOutputChannel subNegotitationOutputChannel(OutputChannel outputChannel) {
         return new SubNegotationOutputChannelImpl(this, outputChannel);
 
     }
@@ -269,7 +269,7 @@ class OptionManager {
     }
 
 
-    private final class SubNegotationOutputChannelImpl implements SubNegotationOutputChannel {
+    private final class SubNegotationOutputChannelImpl implements SubNegotiationOutputChannel {
         private final OptionManager optionManager;
         private final OutputChannel outputChannel;
 

@@ -1,7 +1,7 @@
 package net.virtualinfinity.telnet.option.handlers;
 
 import net.virtualinfinity.telnet.Option;
-import net.virtualinfinity.telnet.SubNegotationOutputChannel;
+import net.virtualinfinity.telnet.SubNegotiationOutputChannel;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -53,7 +53,7 @@ public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuff
         return ByteBuffer.allocate(64);
     }
 
-    public void requestNextTerminalType(SubNegotationOutputChannel output) {
+    public void requestNextTerminalType(SubNegotiationOutputChannel output) {
         output.sendSubNegotiation(optionCode(), ByteBuffer.wrap(new byte[] { 1 }));
     }
 }
