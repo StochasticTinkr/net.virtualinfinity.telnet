@@ -1,6 +1,5 @@
 package net.virtualinfinity.telnet;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -11,15 +10,15 @@ interface TelnetCommandReceiver {
     void receivedDont(int optionId);
     void receivedWill(int optionId);
     void receivedWont(int optionId);
-    void startSubNegotiation(int optionId);
-    void endSubNegotiation();
-    void receivedIAC() throws IOException;
-    void receivedData(ByteBuffer sliced) throws IOException;
+    void receivedStartSubNegotiation(int optionId);
+    void receivedEndSubNegotiation();
+    void receivedIAC();
+    void receivedData(ByteBuffer data);
     void receivedBreak();
     void receivedInterrupt();
     void receivedAbortOutput();
     void receivedAreYouThere();
     void receivedEraseCharacter();
-    void receiveEraseLine();
+    void receivedEraseLine();
     void receivedGoAhead();
 }

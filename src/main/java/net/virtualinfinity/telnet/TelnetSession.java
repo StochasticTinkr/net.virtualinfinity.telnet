@@ -1,45 +1,40 @@
 package net.virtualinfinity.telnet;
 
-import net.virtualinfinity.nio.SelectionKeyActions;
+import net.virtualinfinity.nio.OutputBuffer;
 import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
-import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
+import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
 
-import static net.virtualinfinity.telnet.TelnetConstants.*;
-
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public class TelnetSession implements SelectionKeyActions {
-    private static final int INPUT_BUFFER_SIZE = 256;
+public class TelnetSession {
     private static final Logger logger = Logger.getLogger(TelnetSession.class);
-    private final SocketChannel channel;
-    private final ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
-    private final Queue<ByteBuffer> output = new LinkedList<>();
+    private final OutputBuffer output;
     private final Map<Integer, OptionSessionHandler<?>> optionSessionHandler = new HashMap<>();
     private final OptionState[] optionStates = new OptionState[256];
     private final TelnetSessionListener listener;
-    private final TelnetCommandReceiver telnetCommandReceiver = new CommandReceiver();
-    private SelectionKey selectionKey;
-
-    private TelnetStreamState streamState = TelnetStreamState.initial();
     private TelnetCommandState commandState = TelnetCommandState.initial();
+    private boolean shutdown;
+    private boolean shuttingDown;
 
-    public TelnetSession(SocketChannel channel, TelnetSessionListener listener) {
-        this.channel = channel;
+    public TelnetSession(OutputBuffer outputBuffer, TelnetSessionListener listener) {
+        this.output = outputBuffer;
         this.listener = listener;
     }
+
+    public TelnetDataReceiver createTelnetDataReceiver() {
+        return new TelnetDataReceiver(new CommandReceiver());
+    }
+
 
     private void enabledLocally(int optionId) {
         dispatchToRemoteHandler(optionId, OptionSessionHandler::enabledLocally);
@@ -63,181 +58,65 @@ public class TelnetSession implements SelectionKeyActions {
         dispatchToRemoteHandler(optionId, OptionSessionHandler::disabledRemotely);
     }
 
-    public void selected() throws IOException {
-        if (channel.isConnectionPending()) {
-            if (selectionKey.isConnectable()) {
-                try {
-                    if (channel.finishConnect()) {
-                        listener.connected(this);
-                    }
-                } catch (IOException e) {
-                    listener.connectionFailed(this, e);
-                    doClose();
-                }
-            }
-            updateInterestOps();
-            return;
-        }
-        if (!channel.isConnected()) {
-            doClose();
-            return;
-        }
-        trimOutputBuffer();
-        updateInterestOps();
-
-        if (!output.isEmpty()) {
-            if (isShutdown()) {
-                doClose();
-                return;
-            }
-            if (selectionKey.isWritable()) {
-                final long start = System.nanoTime();
-                while (!output.isEmpty() && channel.write(output.peek()) > 0) {
-                    trimOutputBuffer();
-                    if (isShutdown()) {
-                        doClose();
-                        return;
-                    }
-                    if (TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) > 10) {
-                        break;
-                    }
-                }
-            }
-            // Don't read more until the output buffer is empty.
-            // This is very important to prevent malicious clients from DoS by spamming without reading.
-            if (!output.isEmpty()) {
-                return;
-            }
-        }
-        if (selectionKey.isReadable()) {
-            if (channel.read(inputBuffer) < 0) {
-                doClose();
-                return;
-            }
-            inputBuffer.flip();
-            try {
-                while (inputBuffer.hasRemaining()) {
-                    streamState = streamState.accept(inputBuffer, telnetCommandReceiver);
-                }
-            } finally {
-                inputBuffer.compact();
-            }
-        }
-        updateInterestOps();
-    }
-
-    private void updateInterestOps() {
-        if (selectionKey != null && selectionKey.isValid()) {
-            //noinspection MagicConstant
-            ;
-            selectionKey.interestOps(interestOps());
-        }
-    }
-
-    private void doClose() throws IOException {
-        channel.close();
-        listener.connectionClosed(this);
-    }
-
     public boolean isShutdown() {
-        return !output.isEmpty() && output.peek() == null;
-    }
-
-    private void trimOutputBuffer() {
-        while (!output.isEmpty() && output.peek() != null && !output.peek().hasRemaining()) {
-            output.remove();
-        }
+        return shutdown;
     }
 
     private void sendDo(int optionId) {
         logOptionCommand("Sent DO", optionId);
-        sendOptionCommand(DO, (byte) optionId);
+        sendOptionCommand(TelnetConstants.DO, (byte) optionId);
     }
 
     private void sendDont(int optionId) {
         logOptionCommand("Sent DON'T", optionId);
-        sendOptionCommand(DONT, (byte) optionId);
+        sendOptionCommand(TelnetConstants.DONT, (byte) optionId);
     }
 
     private void sendWill(int optionId) {
         logOptionCommand("Sent WILL", optionId);
-        sendOptionCommand(WILL, (byte) optionId);
+        sendOptionCommand(TelnetConstants.WILL, (byte) optionId);
     }
 
     private void sendWont(int optionId) {
         logOptionCommand("Sent WONT", optionId);
-        sendOptionCommand(WONT, (byte) optionId);
+        sendOptionCommand(TelnetConstants.WONT, (byte) optionId);
     }
 
     private void sendOptionCommand(byte command, byte optionId) {
-        output.add(ByteBuffer.wrap(new byte[]{IAC, command, optionId}));
+        rawWrite(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, command, optionId}));
     }
 
-    public void processedData(ByteBuffer data) throws IOException {
+    public void processedData(ByteBuffer data) {
         listener.processData(data, this);
     }
 
     public void sendSubNegotiation(int optionId, ByteBuffer data) {
-        sendOptionCommand(SB, (byte)optionId);
-        output.add(data);
-        output.add(ByteBuffer.wrap(new byte[]{IAC, SE}));
+        sendOptionCommand(TelnetConstants.SB, (byte)optionId);
+        rawWrite(data);
+        rawWrite(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, TelnetConstants.SE}));
     }
 
-    private void data(byte b) throws IOException {
-        commandState = commandState.data(b, this);
-    }
-
-    public void writeData(ByteBuffer inputData) {
-        final byte[] data =new byte[inputData.remaining()];
-        inputData.get(data);
-        writeData(data);
-
-    }
-
-    public void writeData(byte[] data) {
-        int iacCount = 0;
-        for (final byte datum : data) {
-            if (datum == IAC) {
-                ++iacCount;
+    public void send(ByteBuffer inputData) {
+        ByteBuffer sliced = inputData.slice();
+        while (sliced.hasRemaining()) {
+            if (sliced.get() == TelnetConstants.IAC) {
+                sliced.flip();
+                rawWrite(sliced);
+                sliced.position(sliced.position() - 1);
+                sliced = sliced.slice();
+                sliced.position(1);
             }
         }
-        final ByteBuffer bb;
-        if (iacCount != 0) {
-            bb = ByteBuffer.allocate(iacCount + data.length);
-            for (final byte datum : data) {
-                if (datum == IAC) {
-                    bb.put(IAC);
-                }
-                bb.put(datum);
-            }
-        } else {
-            bb = ByteBuffer.wrap(Arrays.copyOf(data, data.length));
-        }
-        output.add(bb);
-        updateInterestOps();
+        sliced.flip();
+        rawWrite(sliced);
+    }
+
+    public void send(byte[] data) {
+        send(ByteBuffer.wrap(data));
     }
 
     public void close() {
-        output.add(null);
-    }
-
-    public void closeImmediately() throws IOException {
-        output.add(null);
-        doClose();
-    }
-
-    @Override
-    public int interestOps() {
-        if (!channel.isConnected()) {
-            logger.debug("Waiting for connection.");
-            return SelectionKey.OP_CONNECT;
-        }
-        if (output.peek() != null) {
-            logger.debug("Waiting to write.");
-            return SelectionKey.OP_WRITE;
-        }
-        logger.debug("Waiting to read.");
-        return SelectionKey.OP_READ;
+        shuttingDown = true;
     }
 
     enum Response implements ObjIntConsumer<TelnetSession> {
@@ -338,16 +217,15 @@ public class TelnetSession implements SelectionKeyActions {
         updateOptionState(option, OptionState::disableLocal);
     }
 
-    @Override
-    public void setSelectionKey(SelectionKey selectionKey) {
-        this.selectionKey = selectionKey;
-    }
-
     private void logOptionCommand(String command, int optionId) {
         if (logger.isDebugEnabled()) {
             final Option option = Option.byId(optionId);
             logger.debug(command + ": " + option + " (" + optionId + ")");
         }
+    }
+
+    private void rawWrite(ByteBuffer data) {
+        output.append(data);
     }
 
 
@@ -427,7 +305,7 @@ public class TelnetSession implements SelectionKeyActions {
         }
 
         @Override
-        public void receiveEraseLine() {
+        public void receivedEraseLine() {
             listener.doEraseLine(telnetSession);
 
         }
@@ -438,22 +316,22 @@ public class TelnetSession implements SelectionKeyActions {
         }
 
         @Override
-        public void endSubNegotiation() {
+        public void receivedEndSubNegotiation() {
             commandState = commandState.endSubNegotiation(telnetSession);
         }
 
         @Override
-        public void receivedData(ByteBuffer bytes) throws IOException {
+        public void receivedData(ByteBuffer bytes) {
             commandState = commandState.data(bytes, telnetSession);
         }
 
         @Override
-        public void receivedIAC() throws IOException {
-            data(IAC);
+        public void receivedIAC() {
+            commandState = commandState.data(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC}), TelnetSession.this);
         }
 
         @Override
-        public void startSubNegotiation(int optionId) {
+        public void receivedStartSubNegotiation(int optionId) {
             final OptionSessionHandler<?> handler = optionSessionHandler.get(optionId);
             commandState = TelnetCommandState.subNegotiating(handler);
             if (handler != null) {

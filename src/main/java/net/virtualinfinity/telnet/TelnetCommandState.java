@@ -2,7 +2,6 @@ package net.virtualinfinity.telnet;
 
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -11,7 +10,7 @@ import java.nio.ByteBuffer;
 public abstract class TelnetCommandState {
     private static final TelnetCommandState NORMAL_STATE = new TelnetCommandState() {
         @Override
-        public TelnetCommandState data(ByteBuffer bytes, TelnetSession session) throws IOException {
+        public TelnetCommandState data(ByteBuffer bytes, TelnetSession session) {
             if (bytes.hasRemaining()) {
                 session.processedData(bytes);
             }
@@ -24,11 +23,7 @@ public abstract class TelnetCommandState {
         }
     };
 
-    public abstract TelnetCommandState data(ByteBuffer bytes, TelnetSession session) throws IOException;
-
-    public TelnetCommandState data(byte b, TelnetSession session) throws IOException {
-        return data(ByteBuffer.wrap(new byte[]{b}), session);
-    }
+    public abstract TelnetCommandState data(ByteBuffer bytes, TelnetSession session);
 
     public abstract TelnetCommandState endSubNegotiation(TelnetSession session);
 
