@@ -9,25 +9,25 @@ import java.util.function.ObjIntConsumer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public abstract class TelnetStreamState {
-    private static final TelnetStreamState NORMAL_STATE = new NormalState();
-    private static final TelnetStreamState IN_IAC = new InIAC();
+public abstract class StreamState {
+    private static final StreamState NORMAL_STATE = new NormalState();
+    private static final StreamState IN_IAC = new InIAC();
 
-    public abstract TelnetStreamState accept(ByteBuffer buffer, TelnetCommandReceiver commandReceiver) throws IOException;
+    public abstract StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException;
 
-    public static TelnetStreamState initial() {
+    public static StreamState initial() {
         return NORMAL_STATE;
     }
 
-    private static class InIAC extends TelnetStreamState {
-        private static final WaitingForOption IN_DO = new WaitingForOption(TelnetCommandReceiver::receivedDo);
-        private static final WaitingForOption IN_DONT = new WaitingForOption(TelnetCommandReceiver::receivedDont);
-        private static final WaitingForOption IN_WILL = new WaitingForOption(TelnetCommandReceiver::receivedWill);
-        private static final WaitingForOption IN_WONT = new WaitingForOption(TelnetCommandReceiver::receivedWont);
-        private static final WaitingForOption IN_SB = new WaitingForOption(TelnetCommandReceiver::receivedStartSubNegotiation);
+    private static class InIAC extends StreamState {
+        private static final WaitingForOption IN_DO = new WaitingForOption(CommandReceiver::receivedDo);
+        private static final WaitingForOption IN_DONT = new WaitingForOption(CommandReceiver::receivedDont);
+        private static final WaitingForOption IN_WILL = new WaitingForOption(CommandReceiver::receivedWill);
+        private static final WaitingForOption IN_WONT = new WaitingForOption(CommandReceiver::receivedWont);
+        private static final WaitingForOption IN_SB = new WaitingForOption(CommandReceiver::receivedStartSubNegotiation);
 
         @Override
-        public TelnetStreamState accept(ByteBuffer buffer, TelnetCommandReceiver commandReceiver) throws IOException {
+        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException {
             final byte command = buffer.get();
             switch (command) {
                 case TelnetConstants.IAC:
@@ -70,30 +70,30 @@ public abstract class TelnetStreamState {
                     return NORMAL_STATE;
 
             }
-            Logger.getLogger(TelnetStreamState.class).error("Unexpected command after IAC: " + (((int)command) & 255));
+            Logger.getLogger(StreamState.class).error("Unexpected command after IAC: " + (((int)command) & 255));
             return NORMAL_STATE;
         }
 
     }
 
-    private static class WaitingForOption extends TelnetStreamState {
-        private final ObjIntConsumer<TelnetCommandReceiver> command;
+    private static class WaitingForOption extends StreamState {
+        private final ObjIntConsumer<CommandReceiver> command;
 
-        public WaitingForOption(ObjIntConsumer<TelnetCommandReceiver> command) {
+        public WaitingForOption(ObjIntConsumer<CommandReceiver> command) {
             this.command = command;
         }
 
         @Override
-        public TelnetStreamState accept(ByteBuffer buffer, TelnetCommandReceiver commandReceiver) {
+        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) {
             command.accept(commandReceiver, ((int) buffer.get())&0xFF);
 
             return NORMAL_STATE;
         }
     }
 
-    private static class NormalState extends TelnetStreamState {
+    private static class NormalState extends StreamState {
         @Override
-        public TelnetStreamState accept(ByteBuffer buffer, TelnetCommandReceiver commandReceiver) throws IOException {
+        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException {
             final ByteBuffer sliced = buffer.slice();
             while (sliced.hasRemaining()) {
                 if (sliced.get() == TelnetConstants.IAC) {

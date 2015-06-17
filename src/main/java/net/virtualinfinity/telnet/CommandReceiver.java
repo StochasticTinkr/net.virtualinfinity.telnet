@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-interface TelnetCommandReceiver {
+interface CommandReceiver {
     void receivedDo(int optionId);
     void receivedDont(int optionId);
     void receivedWill(int optionId);
