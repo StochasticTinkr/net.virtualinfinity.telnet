@@ -9,12 +9,12 @@ import java.nio.ByteBuffer;
  */
 class CommandRouter implements CommandReceiver {
     private final SessionListener listener;
-    private final CommandDataRouter commandManager;
+    private final SubNegotiationDataRouter dataRouter;
     private final OptionManager optionManager;
 
-    public CommandRouter(SessionListener listener, CommandDataRouter commandManager, OptionManager optionManager) {
+    public CommandRouter(SessionListener listener, SubNegotiationDataRouter dataRouter, OptionManager optionManager) {
         this.listener = listener;
-        this.commandManager = commandManager;
+        this.dataRouter = dataRouter;
         this.optionManager = optionManager;
     }
 
@@ -56,23 +56,23 @@ class CommandRouter implements CommandReceiver {
 
     @Override
     public void receivedEndSubNegotiation() {
-        commandManager.receivedEndSubNegotiation();
+        dataRouter.receivedEndSubNegotiation();
     }
 
     @Override
     public void receivedData(ByteBuffer bytes) {
-        commandManager.receivedData(bytes);
+        dataRouter.receivedData(bytes);
     }
 
     @Override
     public void receivedIAC() {
-        commandManager.receivedIAC();
+        dataRouter.receivedIAC();
     }
 
     @Override
     public void receivedStartSubNegotiation(int optionId) {
         final OptionSessionHandler<?> handler = optionManager.getSessionHandler(optionId);
-        commandManager.receivedStartSubNegotiation(handler);
+        dataRouter.receivedStartSubNegotiation(handler);
     }
 
     @Override
