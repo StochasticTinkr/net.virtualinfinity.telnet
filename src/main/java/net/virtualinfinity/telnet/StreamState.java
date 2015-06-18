@@ -107,7 +107,8 @@ public abstract class StreamState {
                 }
             }
             commandReceiver.receivedData(buffer);
-
+            // Ensure that the buffer has been consumed.
+            buffer.position(buffer.limit());
             return this;
         }
     }
