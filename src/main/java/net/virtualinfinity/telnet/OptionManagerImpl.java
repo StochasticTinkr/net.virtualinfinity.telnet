@@ -183,60 +183,60 @@ class OptionManagerImpl implements OptionManager {
     private static class OptionHandleImpl implements OptionHandle {
 
         private final HasOptionCode option;
-        private final OptionManagerImpl OptionManagerImpl;
+        private final OptionManagerImpl optionManager;
         private OptionHandleImpl(HasOptionCode option, OptionManagerImpl OptionManagerImpl) {
             this.option = option;
-            this.OptionManagerImpl = OptionManagerImpl;
+            this.optionManager = OptionManagerImpl;
         }
 
         @Override
         public boolean isEnabledRemotely() {
-            return OptionManagerImpl.isEnabledRemotely(option);
+            return optionManager.isEnabledRemotely(option);
         }
 
         @Override
         public boolean isEnabledLocally() {
-            return OptionManagerImpl.isEnabledLocally(option);
+            return optionManager.isEnabledLocally(option);
         }
 
         @Override
         public OptionHandle requestRemoteEnable() {
-            OptionManagerImpl.requestRemoteEnable(option);
+            optionManager.requestRemoteEnable(option);
 
             return this;
         }
 
         @Override
         public OptionHandle requestLocalEnable() {
-            OptionManagerImpl.requestLocalEnable(option);
+            optionManager.requestLocalEnable(option);
 
             return this;
         }
 
         @Override
         public OptionHandle requestRemoteDisable() {
-            OptionManagerImpl.requestRemoteDisable(option);
+            optionManager.requestRemoteDisable(option);
 
             return this;
         }
 
         @Override
         public OptionHandle requestLocalDisable() {
-            OptionManagerImpl.requestLocalDisable(option);
+            optionManager.requestLocalDisable(option);
 
             return this;
         }
 
         @Override
         public OptionHandle allowLocal() {
-            OptionManagerImpl.allowLocal(option);
+            optionManager.allowLocal(option);
 
             return this;
         }
 
         @Override
         public OptionHandle allowRemote() {
-            OptionManagerImpl.allowRemote(option);
+            optionManager.allowRemote(option);
 
             return this;
         }
