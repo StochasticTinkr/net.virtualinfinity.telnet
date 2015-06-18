@@ -57,12 +57,12 @@ class OptionState {
 
     private static class Responses {
         private final Function<OptionState, EndState> endGetter;
-        private final OptionManager.Response requestDisable;
-        private final ObjIntConsumer<OptionManager> enabled;
-        private final ObjIntConsumer<OptionManager> disabled;
-        private final ObjIntConsumer<OptionManager> requestEnable;
+        private final OptionManagerImpl.Response requestDisable;
+        private final ObjIntConsumer<OptionManagerImpl> enabled;
+        private final ObjIntConsumer<OptionManagerImpl> disabled;
+        private final ObjIntConsumer<OptionManagerImpl> requestEnable;
 
-        public Responses(Function<OptionState, EndState> endGetter, OptionManager.Response requestDisable, ObjIntConsumer<OptionManager> requestEnable, ObjIntConsumer<OptionManager> enabled, ObjIntConsumer<OptionManager> disabled) {
+        public Responses(Function<OptionState, EndState> endGetter, OptionManagerImpl.Response requestDisable, ObjIntConsumer<OptionManagerImpl> requestEnable, ObjIntConsumer<OptionManagerImpl> enabled, ObjIntConsumer<OptionManagerImpl> disabled) {
             this.endGetter = endGetter;
             this.requestDisable = requestDisable;
             this.requestEnable = requestEnable;
@@ -70,7 +70,7 @@ class OptionState {
             this.disabled = disabled;
         }
 
-        public ObjIntConsumer<OptionManager> remoteDisables(OptionState state) {
+        public ObjIntConsumer<OptionManagerImpl> remoteDisables(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.remoteWants = false;
             if (end.isEnabled()) {
@@ -80,10 +80,10 @@ class OptionState {
                     return disabled(end);
                 }
             }
-            return OptionManager.Response.NO_RESPONSE;
+            return OptionManagerImpl.Response.NO_RESPONSE;
         }
 
-        public ObjIntConsumer<OptionManager> localDisables(OptionState state) {
+        public ObjIntConsumer<OptionManagerImpl> localDisables(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.localWants = false;
             if (end.remoteWants) {
@@ -92,12 +92,12 @@ class OptionState {
             return disabled(end);
         }
 
-        public ObjIntConsumer<OptionManager> disabled(EndState end) {
+        public ObjIntConsumer<OptionManagerImpl> disabled(EndState end) {
             end.enabled = false;
             return disabled;
         }
 
-        public ObjIntConsumer<OptionManager> localWants(OptionState state) {
+        public ObjIntConsumer<OptionManagerImpl> localWants(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.allow(); // Force allowed, since we're advertising it.
             end.localWants();
@@ -107,12 +107,12 @@ class OptionState {
             return requestEnable;
         }
 
-        public ObjIntConsumer<OptionManager> enabled(EndState end) {
+        public ObjIntConsumer<OptionManagerImpl> enabled(EndState end) {
             end.enabled = true;
             return enabled;
         }
 
-        public ObjIntConsumer<OptionManager> remoteWants(OptionState state) {
+        public ObjIntConsumer<OptionManagerImpl> remoteWants(OptionState state) {
             final EndState end = endGetter.apply(state);
             if (!end.isSupported()) {
                 return requestDisable;
@@ -120,7 +120,7 @@ class OptionState {
             end.remoteWants();
             if (end.localWants) {
                 if (end.isEnabled()) {
-                    return OptionManager.Response.NO_RESPONSE; // no change.
+                    return OptionManagerImpl.Response.NO_RESPONSE; // no change.
                 }
                 return enabled(end);
             }
@@ -129,12 +129,12 @@ class OptionState {
     }
 
     private static final Responses localResponse =
-        new Responses(OptionState::local, OptionManager.Response.SEND_WONT, OptionManager.Response.SEND_WILL,
-            OptionManager.Response.IS_ENABLED_LOCALLY, OptionManager.Response.IS_DISABLED_LOCALLY);
+        new Responses(OptionState::local, OptionManagerImpl.Response.SEND_WONT, OptionManagerImpl.Response.SEND_WILL,
+            OptionManagerImpl.Response.IS_ENABLED_LOCALLY, OptionManagerImpl.Response.IS_DISABLED_LOCALLY);
 
     private static final Responses remoteResponse =
-        new Responses(OptionState::remote, OptionManager.Response.SEND_DONT, OptionManager.Response.SEND_DO,
-            OptionManager.Response.IS_ENABLED_REMOTELY, OptionManager.Response.IS_DISABLED_REMOTELY);
+        new Responses(OptionState::remote, OptionManagerImpl.Response.SEND_DONT, OptionManagerImpl.Response.SEND_DO,
+            OptionManagerImpl.Response.IS_ENABLED_REMOTELY, OptionManagerImpl.Response.IS_DISABLED_REMOTELY);
 
     private final EndState remote = new EndState();
     private final EndState local = new EndState();
@@ -146,35 +146,35 @@ class OptionState {
     public EndState local() {
         return local;
     }
-    public ObjIntConsumer<OptionManager> receivedDo() {
+    public ObjIntConsumer<OptionManagerImpl> receivedDo() {
         return localResponse.remoteWants(this);
     }
 
-    public ObjIntConsumer<OptionManager> receivedWill() {
+    public ObjIntConsumer<OptionManagerImpl> receivedWill() {
         return remoteResponse.remoteWants(this);
     }
 
-    public ObjIntConsumer<OptionManager> receivedDont() {
+    public ObjIntConsumer<OptionManagerImpl> receivedDont() {
         return localResponse.remoteDisables(this);
     }
 
-    public ObjIntConsumer<OptionManager> receivedWont() {
+    public ObjIntConsumer<OptionManagerImpl> receivedWont() {
         return remoteResponse.remoteDisables(this);
     }
 
-    public ObjIntConsumer<OptionManager> enableLocal() {
+    public ObjIntConsumer<OptionManagerImpl> enableLocal() {
         return localResponse.localWants(this);
     }
 
-    public ObjIntConsumer<OptionManager> enableRemote() {
+    public ObjIntConsumer<OptionManagerImpl> enableRemote() {
         return remoteResponse.localWants(this);
     }
 
-    public ObjIntConsumer<OptionManager> disableLocal() {
+    public ObjIntConsumer<OptionManagerImpl> disableLocal() {
         return localResponse.localDisables(this);
     }
 
-    public ObjIntConsumer<OptionManager> disableRemote() {
+    public ObjIntConsumer<OptionManagerImpl> disableRemote() {
         return remoteResponse.localDisables(this);
     }
 
