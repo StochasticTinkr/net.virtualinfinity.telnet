@@ -25,9 +25,7 @@ public class ClientStarter {
 
     public void connect(EventLoop loop, String hostname, int port, SessionListener sessionListener) {
         final ConnectionListener connectionListener = new ClientConnectionListener(sessionListener);
-        connectionInitiator.connect(loop, hostname, port, connectionListener, channel -> {
-            },
-            socketChannel -> {
+        connectionInitiator.connect(loop, hostname, port, connectionListener, socketChannel -> {
                 try {
                     final OutputBuffer outputBuffer = new OutputBuffer();
                     final OptionManager optionManager = new OptionManager(outputBuffer::append);
