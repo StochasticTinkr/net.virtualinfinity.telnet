@@ -39,19 +39,16 @@ public class OptionManagerImplTest {
     @Test
     public void requestRemoteEnableAndAgrees() throws Exception {
         validateRequestNegotiation(TelnetConstants.DO, optionManager::receivedWill, OptionHandle::isEnabledRemotely, true, OptionHandle::requestRemoteEnable);
-
     }
 
     @Test
     public void requestRemoteEnableAndDisagrees() throws Exception {
         validateRequestNegotiation(TelnetConstants.DO, optionManager::receivedWont, OptionHandle::isEnabledRemotely, false, OptionHandle::requestRemoteEnable);
-
     }
 
     @Test
     public void requestLocalEnableAndAgrees() throws Exception {
         validateRequestNegotiation(TelnetConstants.WILL, optionManager::receivedDo, OptionHandle::isEnabledLocally, true, OptionHandle::requestLocalEnable);
-
     }
 
     @Test
@@ -114,10 +111,8 @@ public class OptionManagerImplTest {
 
     private static class SentCommandMatcher extends BaseMatcher<ByteBuffer> {
         private final byte[] expected;
-        private final byte command;
 
         public SentCommandMatcher(byte command) {
-            this.command = command;
             expected = new byte[]{TelnetConstants.IAC, command, OPTION_ID};
         }
 
