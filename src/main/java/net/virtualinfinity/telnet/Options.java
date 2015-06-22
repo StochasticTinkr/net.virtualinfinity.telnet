@@ -1,5 +1,6 @@
 package net.virtualinfinity.telnet;
 
+import net.virtualinfinity.telnet.option.OptionStateListener;
 import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
 import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 
@@ -9,5 +10,7 @@ import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 public interface Options {
     OptionHandle option(HasOptionCode hasOptionCode);
     OptionHandle option(int optionCode);
+
+    @Deprecated
     <T, R extends SubNegotiationReceiver<T> &OptionReceiver<T>> OptionHandle installOptionReceiver(R receiver);
 }

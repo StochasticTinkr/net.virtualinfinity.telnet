@@ -71,8 +71,7 @@ class CommandRouter implements CommandReceiver {
 
     @Override
     public void receivedStartSubNegotiation(int optionId) {
-        final OptionSessionHandler<?> handler = optionManager.getSessionHandler(optionId);
-        dataRouter.receivedStartSubNegotiation(handler);
+        dataRouter.receivedStartSubNegotiation(optionManager.getSubNegotiationListener(optionId));
     }
 
     @Override

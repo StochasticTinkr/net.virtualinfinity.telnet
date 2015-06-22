@@ -6,7 +6,8 @@ import java.util.function.BiFunction;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public final class OptionSessionHandlerImpl<T> implements OptionSessionHandler<T> {
+@Deprecated
+public final class OptionSessionHandlerImpl<T> implements OptionSessionHandler {
     private final SubNegotiationReceiver<T> subNegotiationReceiver;
     private final OptionReceiver<T> optionReceiver;
     private T sessionData;
@@ -16,11 +17,11 @@ public final class OptionSessionHandlerImpl<T> implements OptionSessionHandler<T
         this.optionReceiver = optionReceiver;
     }
 
-    public static  <T, R extends SubNegotiationReceiver<T>&OptionReceiver<T>> OptionSessionHandler<T> of(R receiver) {
+    public static  <T, R extends SubNegotiationReceiver<T>&OptionReceiver<T>> OptionSessionHandler of(R receiver) {
         return new OptionSessionHandlerImpl<>(receiver, receiver);
     }
 
-    public static <T> OptionSessionHandler<T> of(OptionReceiver<T> receiver) {
+    public static <T> OptionSessionHandler of(OptionReceiver<T> receiver) {
         return new OptionSessionHandlerImpl<>(null, receiver);
     }
     @Override

@@ -3,9 +3,9 @@ package net.virtualinfinity.telnet.option.handlers;
 import net.virtualinfinity.telnet.HasOptionCode;
 
 /**
- *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
+@Deprecated
 public interface OptionReceiver<T> extends HasOptionCode {
     /**
      * Called when both DO was requested and WILL was received.

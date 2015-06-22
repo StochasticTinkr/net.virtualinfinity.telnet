@@ -1,5 +1,6 @@
 package net.virtualinfinity.telnet;
 
+import net.virtualinfinity.telnet.option.SubNegotiationListener;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
@@ -27,7 +28,7 @@ public class CommandRouterTest {
     @Mock
     private OptionManager optionManager;
     @Mock
-    private OptionSessionHandler<?> optionSessionHandler;
+    private SubNegotiationListener optionSessionHandler;
 
     @Test
     public void testReceivedBreak() throws Exception {
@@ -93,7 +94,7 @@ public class CommandRouterTest {
     @Test
     public void testReceivedStartSubNegotiation() throws Exception {
         context.checking(new Expectations() {{
-            oneOf(optionManager).getSessionHandler(OPTION_ID); will(returnValue(optionSessionHandler));
+            oneOf(optionManager).getSubNegotiationListener(OPTION_ID); will(returnValue(optionSessionHandler));
             oneOf(commandManager).receivedStartSubNegotiation(optionSessionHandler);
         }});
         commandRouter().receivedStartSubNegotiation(OPTION_ID);

@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
+@Deprecated
 public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuffer> {
     private final RemoteTerminalTypeListener remoteTerminalTypeListener;
 

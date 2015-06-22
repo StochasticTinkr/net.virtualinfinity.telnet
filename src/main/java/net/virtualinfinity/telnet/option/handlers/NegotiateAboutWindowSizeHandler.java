@@ -9,6 +9,7 @@ import java.util.function.IntConsumer;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
+@Deprecated
 public class NegotiateAboutWindowSizeHandler implements SubNegotiationReceiver<ByteBuffer> {
     private final WindowSizeListener windowSizeListener;
 

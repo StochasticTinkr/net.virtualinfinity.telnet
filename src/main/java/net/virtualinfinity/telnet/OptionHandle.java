@@ -1,5 +1,7 @@
 package net.virtualinfinity.telnet;
 
+import net.virtualinfinity.telnet.option.OptionStateListener;
+import net.virtualinfinity.telnet.option.SubNegotiationListener;
 import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
 import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 
@@ -15,5 +17,8 @@ public interface OptionHandle {
     OptionHandle requestLocalDisable();
     OptionHandle allowLocal();
     OptionHandle allowRemote();
-
+    OptionHandle addStateListener(OptionStateListener optionStateListener);
+    OptionHandle removeStateListener(OptionStateListener optionStateListener);
+    OptionHandle setSubNegotiationListener(SubNegotiationListener subNegotiationListener);
+    int optionCode();
 }

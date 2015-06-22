@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
  *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
+@Deprecated
 public interface SubNegotiationReceiver<T> extends HasOptionCode {
 
     /**

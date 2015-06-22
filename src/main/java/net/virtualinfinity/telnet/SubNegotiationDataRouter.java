@@ -1,5 +1,6 @@
 package net.virtualinfinity.telnet;
 
+import net.virtualinfinity.telnet.option.SubNegotiationListener;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 
 import java.nio.ByteBuffer;
@@ -9,10 +10,7 @@ import java.nio.ByteBuffer;
  */
 public interface SubNegotiationDataRouter {
     void receivedEndSubNegotiation();
-
     void receivedData(ByteBuffer bytes);
-
     void receivedIAC();
-
-    void receivedStartSubNegotiation(OptionSessionHandler<?> optionSessionHandler);
+    void receivedStartSubNegotiation(SubNegotiationListener listener);
 }

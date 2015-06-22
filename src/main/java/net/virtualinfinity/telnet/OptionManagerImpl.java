@@ -1,5 +1,7 @@
 package net.virtualinfinity.telnet;
 
+import net.virtualinfinity.telnet.option.OptionStateListener;
+import net.virtualinfinity.telnet.option.SubNegotiationListener;
 import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandlerImpl;
@@ -7,8 +9,7 @@ import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
@@ -20,17 +21,18 @@ class OptionManagerImpl implements OptionManager {
     private static final Logger logger = Logger.getLogger(OptionManagerImpl.class);
     private final Consumer<ByteBuffer> output;
     private final OptionState[] optionStates = new OptionState[256];
-    private final Map<Integer, OptionSessionHandler<?>> optionSessionHandler = new HashMap<>();
+    private final Map<Integer, List<OptionStateListener>> optionStateListeners = new HashMap<>();
+    private final Map<Integer, SubNegotiationListener> subNegotiationListeners = new HashMap<>();
 
     OptionManagerImpl(Consumer<ByteBuffer> output) {
         this.output = output;
     }
 
     private void enabledLocally(int optionId) {
-        dispatchToRemoteHandler(optionId, OptionSessionHandler::enabledLocally);
+        optionStateListeners.getOrDefault(optionId, Collections.emptyList()).forEach(OptionStateListener::enabledLocally);
     }
     private void disabledLocally(int optionId) {
-        dispatchToRemoteHandler(optionId, OptionSessionHandler::disabledLocally);
+        optionStateListeners.getOrDefault(optionId, Collections.emptyList()).forEach(OptionStateListener::disabledLocally);
     }
 
     private OptionState optionState(int optionId) {
@@ -42,19 +44,13 @@ class OptionManagerImpl implements OptionManager {
         return optionState;
     }
 
-    private void dispatchToRemoteHandler(int optionId, Consumer<OptionSessionHandler<?>> command) {
-        final OptionSessionHandler<?> handler = optionSessionHandler.get(optionId);
-        if (handler != null) {
-            command.accept(handler);
-        }
-    }
 
     private void enabledRemotely(int optionId) {
-        dispatchToRemoteHandler(optionId, OptionSessionHandler::enabledRemotely);
+        optionStateListeners.getOrDefault(optionId, Collections.emptyList()).forEach(OptionStateListener::enabledRemotely);
     }
 
     private void disabledRemotely(int optionId) {
-        dispatchToRemoteHandler(optionId, OptionSessionHandler::disabledRemotely);
+        optionStateListeners.getOrDefault(optionId, Collections.emptyList()).forEach(OptionStateListener::disabledRemotely);
     }
 
     private void sendDo(int optionId) {
@@ -112,11 +108,11 @@ class OptionManagerImpl implements OptionManager {
         }
     }
 
-    public OptionSessionHandler<?> getSessionHandler(int optionId) {
-        return optionSessionHandler.get(optionId);
+    public SubNegotiationListener getSubNegotiationListener(int optionId) {
+        return subNegotiationListeners.get(optionId);
     }
 
-    SubNegotiationOutputChannel subNegotitationOutputChannel(OutputChannel outputChannel) {
+    SubNegotiationOutputChannel subNegotiationOutputChannel(OutputChannel outputChannel) {
         return new SubNegotiationOutputChannelImpl(this, outputChannel);
 
     }
@@ -146,8 +142,10 @@ class OptionManagerImpl implements OptionManager {
             }
 
             @Override
+            @Deprecated
             public <T, R extends SubNegotiationReceiver<T> & OptionReceiver<T>> OptionHandle installOptionReceiver(R receiver) {
-                optionSessionHandler.put(receiver.optionCode(), OptionSessionHandlerImpl.of(receiver));
+                final OptionSessionHandler of = OptionSessionHandlerImpl.of(receiver);
+                option(receiver).addStateListener(of).setSubNegotiationListener(of);
                 return option(receiver);
             }
         };
@@ -178,6 +176,10 @@ class OptionManagerImpl implements OptionManager {
 
     private boolean isEnabledLocally(HasOptionCode option) {
         return optionState(option).isEnabledLocally();
+    }
+
+    private Collection<OptionStateListener> stateListenerList(int optionCode) {
+        return optionStateListeners.computeIfAbsent(optionCode, integer -> new ArrayList<>());
     }
 
     private static class OptionHandleImpl implements OptionHandle {
@@ -241,6 +243,28 @@ class OptionManagerImpl implements OptionManager {
             return this;
         }
 
+        @Override
+        public OptionHandle addStateListener(OptionStateListener optionStateListener) {
+            optionManager.stateListenerList(optionCode()).add(optionStateListener);
+            return this;
+        }
+
+        @Override
+        public OptionHandle removeStateListener(OptionStateListener optionStateListener) {
+            optionManager.stateListenerList(optionCode()).remove(optionStateListener);
+            return this;
+        }
+
+        @Override
+        public OptionHandle setSubNegotiationListener(SubNegotiationListener subNegotiationListener) {
+            optionManager.subNegotiationListeners.put(optionCode(), subNegotiationListener);
+            return this;
+        }
+
+        @Override
+        public int optionCode() {
+            return option.optionCode();
+        }
     }
 
     enum Response implements ObjIntConsumer<OptionManagerImpl> {
