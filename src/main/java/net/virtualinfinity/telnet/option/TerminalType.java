@@ -9,6 +9,8 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 /**
+ * Handles the Terminal Type option negotiation.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public class TerminalType extends AbstractNegotiatingOption {
@@ -23,6 +25,11 @@ public class TerminalType extends AbstractNegotiatingOption {
         super(session, Option.TERMINAL_TYPE);
     }
 
+    /**
+     * Attaches a new TerminalType option handler to the session.
+     * @param session the session
+     * @return a new TerminalType instance.
+     */
     public static TerminalType of(Session session) {
         return create(TerminalType::new, session);
     }
@@ -44,11 +51,22 @@ public class TerminalType extends AbstractNegotiatingOption {
         sendSubNegotiation(output.asReadOnlyBuffer());
     }
 
+    /**
+     * Request that the remote sends its terminal type to us.
+     *
+     * @see #addRemoteTerminalTypeListener(RemoteTerminalTypeListener)
+     * @return this.
+     */
     public TerminalType requestRemoteEnable() {
         optionHandle.requestRemoteEnable();
         return this;
     }
 
+    /**
+     * Request the next terminal type from the remote, iff the option is enabled.
+     * @see #addRemoteTerminalTypeListener(RemoteTerminalTypeListener)
+     * @return this.
+     */
     public TerminalType requestNext() {
         if (optionHandle.isEnabledRemotely()) {
             sendSubNegotiation(ByteBuffer.wrap(new byte[] {TTYPE_SEND}));
@@ -56,7 +74,13 @@ public class TerminalType extends AbstractNegotiatingOption {
         return this;
     }
 
-
+    /**
+     * Allow the remote to request our terminal types.
+     *
+     * @param terminalTypeSelector
+     *
+     * @return
+     */
     public TerminalType allowLocal(TerminalTypeSelector terminalTypeSelector) {
         this.terminalTypeSelector = terminalTypeSelector;
         optionHandle.allowLocal();

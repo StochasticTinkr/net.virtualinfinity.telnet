@@ -6,9 +6,11 @@ import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 import java.nio.ByteBuffer;
 
 /**
+ * Routes sub-negotiation data to the right place.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public interface SubNegotiationDataRouter {
+interface SubNegotiationDataRouter {
     void receivedEndSubNegotiation();
     void receivedData(ByteBuffer bytes);
     void receivedIAC();

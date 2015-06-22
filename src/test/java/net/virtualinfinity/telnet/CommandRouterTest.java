@@ -1,7 +1,6 @@
 package net.virtualinfinity.telnet;
 
 import net.virtualinfinity.telnet.option.SubNegotiationListener;
-import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
@@ -26,7 +25,7 @@ public class CommandRouterTest {
     @Mock
     private SubNegotiationDataRouter commandManager;
     @Mock
-    private OptionManager optionManager;
+    private OptionCommandManager optionCommandManager;
     @Mock
     private SubNegotiationListener optionSessionHandler;
 
@@ -94,7 +93,7 @@ public class CommandRouterTest {
     @Test
     public void testReceivedStartSubNegotiation() throws Exception {
         context.checking(new Expectations() {{
-            oneOf(optionManager).getSubNegotiationListener(OPTION_ID); will(returnValue(optionSessionHandler));
+            oneOf(optionCommandManager).getSubNegotiationListener(OPTION_ID); will(returnValue(optionSessionHandler));
             oneOf(commandManager).receivedStartSubNegotiation(optionSessionHandler);
         }});
         commandRouter().receivedStartSubNegotiation(OPTION_ID);
@@ -102,30 +101,30 @@ public class CommandRouterTest {
 
     @Test
     public void testReceivedDo() throws Exception {
-        context.checking(oneOf(optionManager, OptionManager::receivedDo, OPTION_ID));
+        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedDo, OPTION_ID));
         commandRouter().receivedDo(OPTION_ID);
     }
 
     @Test
     public void testReceivedDont() throws Exception {
-        context.checking(oneOf(optionManager, OptionManager::receivedDont, OPTION_ID));
+        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedDont, OPTION_ID));
         commandRouter().receivedDont(OPTION_ID);
     }
 
     @Test
     public void testReceivedWill() throws Exception {
-        context.checking(oneOf(optionManager, OptionManager::receivedWill, OPTION_ID));
+        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedWill, OPTION_ID));
         commandRouter().receivedWill(OPTION_ID);
     }
 
     @Test
     public void testReceivedWont() throws Exception {
-        context.checking(oneOf(optionManager, OptionManager::receivedWont, OPTION_ID));
+        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedWont, OPTION_ID));
         commandRouter().receivedWont(OPTION_ID);
     }
 
     private CommandRouter commandRouter() {
-        return new CommandRouter(sessionListener, commandManager, optionManager);
+        return new CommandRouter(sessionListener, commandManager, optionCommandManager);
     }
 
     private  <T> Expectations oneOf(final T mock, final Consumer<T> action) {

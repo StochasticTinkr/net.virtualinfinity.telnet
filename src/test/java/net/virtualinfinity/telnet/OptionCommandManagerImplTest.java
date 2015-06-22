@@ -22,18 +22,18 @@ import static org.junit.Assert.assertThat;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public class OptionManagerImplTest {
+public class OptionCommandManagerImplTest {
     public static final byte OPTION_ID = 1;
     @Rule
     public JUnitRuleMockery context = new JUnitRuleMockery();
 
     @Mock
     private Consumer<ByteBuffer> output;
-    private OptionManagerImpl optionManager;
+    private OptionCommandManagerImpl optionManager;
 
     @Before
     public void setUp() throws Exception {
-        optionManager = new OptionManagerImpl(output);
+        optionManager = new OptionCommandManagerImpl(output);
     }
 
     @Test

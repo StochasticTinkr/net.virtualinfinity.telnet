@@ -2,10 +2,6 @@ package net.virtualinfinity.telnet;
 
 import net.virtualinfinity.telnet.option.OptionStateListener;
 import net.virtualinfinity.telnet.option.SubNegotiationListener;
-import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
-import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
-import net.virtualinfinity.telnet.option.handlers.OptionSessionHandlerImpl;
-import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -15,16 +11,18 @@ import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
 
 /**
+ * An implementation of the OptionCommandManager.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-class OptionManagerImpl implements OptionManager {
-    private static final Logger logger = Logger.getLogger(OptionManagerImpl.class);
+class OptionCommandManagerImpl implements OptionCommandManager {
+    private static final Logger logger = Logger.getLogger(OptionCommandManagerImpl.class);
     private final Consumer<ByteBuffer> output;
     private final OptionState[] optionStates = new OptionState[256];
     private final Map<Integer, List<OptionStateListener>> optionStateListeners = new HashMap<>();
     private final Map<Integer, SubNegotiationListener> subNegotiationListeners = new HashMap<>();
 
-    OptionManagerImpl(Consumer<ByteBuffer> output) {
+    OptionCommandManagerImpl(Consumer<ByteBuffer> output) {
         this.output = output;
     }
 
@@ -108,6 +106,7 @@ class OptionManagerImpl implements OptionManager {
         }
     }
 
+    @Override
     public SubNegotiationListener getSubNegotiationListener(int optionId) {
         return subNegotiationListeners.get(optionId);
     }
@@ -133,7 +132,7 @@ class OptionManagerImpl implements OptionManager {
         return new Options() {
             @Override
             public OptionHandle option(HasOptionCode hasOptionCode) {
-                return new OptionHandleImpl(hasOptionCode, OptionManagerImpl.this);
+                return new OptionHandleImpl(hasOptionCode, OptionCommandManagerImpl.this);
             }
 
             @Override
@@ -141,17 +140,10 @@ class OptionManagerImpl implements OptionManager {
                 return option(() -> optionCode);
             }
 
-            @Override
-            @Deprecated
-            public <T, R extends SubNegotiationReceiver<T> & OptionReceiver<T>> OptionHandle installOptionReceiver(R receiver) {
-                final OptionSessionHandler of = OptionSessionHandlerImpl.of(receiver);
-                option(receiver).addStateListener(of).setSubNegotiationListener(of);
-                return option(receiver);
-            }
         };
     }
 
-    private void updateOptionState(HasOptionCode option, Function<OptionState, ObjIntConsumer<OptionManagerImpl>> command) {
+    private void updateOptionState(HasOptionCode option, Function<OptionState, ObjIntConsumer<OptionCommandManagerImpl>> command) {
         command.apply(optionState(option.optionCode())).accept(this, option.optionCode());
     }
     private void requestRemoteEnable(HasOptionCode option) {
@@ -185,8 +177,8 @@ class OptionManagerImpl implements OptionManager {
     private static class OptionHandleImpl implements OptionHandle {
 
         private final HasOptionCode option;
-        private final OptionManagerImpl optionManager;
-        private OptionHandleImpl(HasOptionCode option, OptionManagerImpl OptionManagerImpl) {
+        private final OptionCommandManagerImpl optionManager;
+        private OptionHandleImpl(HasOptionCode option, OptionCommandManagerImpl OptionManagerImpl) {
             this.option = option;
             this.optionManager = OptionManagerImpl;
         }
@@ -267,29 +259,29 @@ class OptionManagerImpl implements OptionManager {
         }
     }
 
-    enum Response implements ObjIntConsumer<OptionManagerImpl> {
-        SEND_WONT(OptionManagerImpl::sendWont),
-        IS_ENABLED_LOCALLY(OptionManagerImpl::enabledLocally),
-        IS_DISABLED_LOCALLY(OptionManagerImpl::disabledLocally),
+    enum Response implements ObjIntConsumer<OptionCommandManagerImpl> {
+        SEND_WONT(OptionCommandManagerImpl::sendWont),
+        IS_ENABLED_LOCALLY(OptionCommandManagerImpl::enabledLocally),
+        IS_DISABLED_LOCALLY(OptionCommandManagerImpl::disabledLocally),
         NO_RESPONSE((OptionManagerImpl, value) -> {}),
-        SEND_DO(OptionManagerImpl::sendDo),
-        IS_ENABLED_REMOTELY(OptionManagerImpl::enabledRemotely),
-        IS_DISABLED_REMOTELY(OptionManagerImpl::disabledRemotely),
-        SEND_DONT(OptionManagerImpl::sendDont),
-        SEND_WILL(OptionManagerImpl::sendWill),
+        SEND_DO(OptionCommandManagerImpl::sendDo),
+        IS_ENABLED_REMOTELY(OptionCommandManagerImpl::enabledRemotely),
+        IS_DISABLED_REMOTELY(OptionCommandManagerImpl::disabledRemotely),
+        SEND_DONT(OptionCommandManagerImpl::sendDont),
+        SEND_WILL(OptionCommandManagerImpl::sendWill),
         ;
 
-        private final ObjIntConsumer<OptionManagerImpl> responder;
+        private final ObjIntConsumer<OptionCommandManagerImpl> responder;
 
-        Response(ObjIntConsumer<OptionManagerImpl> responder) {
+        Response(ObjIntConsumer<OptionCommandManagerImpl> responder) {
             this.responder = responder;
         }
 
-        public void accept(OptionManagerImpl OptionManagerImpl, int optionId) {
+        public void accept(OptionCommandManagerImpl OptionManagerImpl, int optionId) {
             responder.accept(OptionManagerImpl, optionId);
         }
 
-        public ObjIntConsumer<OptionManagerImpl> and(ObjIntConsumer<OptionManagerImpl> otherResponse) {
+        public ObjIntConsumer<OptionCommandManagerImpl> and(ObjIntConsumer<OptionCommandManagerImpl> otherResponse) {
             return (OptionManagerImpl, value) -> {
                 accept(OptionManagerImpl, value);
                 otherResponse.accept(OptionManagerImpl, value);
@@ -299,19 +291,19 @@ class OptionManagerImpl implements OptionManager {
 
 
     private final class SubNegotiationOutputChannelImpl implements SubNegotiationOutputChannel {
-        private final OptionManagerImpl OptionManagerImpl;
+        private final OptionCommandManagerImpl optionCommandManagerImpl;
         private final OutputChannel outputChannel;
 
-        public SubNegotiationOutputChannelImpl(OptionManagerImpl OptionManagerImpl, OutputChannel outputChannel) {
-            this.OptionManagerImpl = OptionManagerImpl;
+        public SubNegotiationOutputChannelImpl(OptionCommandManagerImpl optionCommandManagerImpl, OutputChannel outputChannel) {
+            this.optionCommandManagerImpl = optionCommandManagerImpl;
             this.outputChannel = outputChannel;
         }
 
         @Override
         public void sendSubNegotiation(int optionId, ByteBuffer data) {
-            OptionManagerImpl.sendOptionCommand(TelnetConstants.SB, (byte) optionId);
+            optionCommandManagerImpl.sendOptionCommand(TelnetConstants.SB, (byte) optionId);
             outputChannel.write(data);
-            OptionManagerImpl.output.accept(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, TelnetConstants.SE}));
+            optionCommandManagerImpl.output.accept(ByteBuffer.wrap(new byte[]{TelnetConstants.IAC, TelnetConstants.SE}));
         }
     }
 }

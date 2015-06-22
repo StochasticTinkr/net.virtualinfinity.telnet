@@ -1,21 +1,29 @@
 package net.virtualinfinity.telnet;
 
-import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
-
 import java.nio.ByteBuffer;
 
 /**
+ * An implementation of the {@link CommandReceiver} interface which routes the commands to
+ * other appropriate objects.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 class CommandRouter implements CommandReceiver {
     private final SessionListener listener;
     private final SubNegotiationDataRouter dataRouter;
-    private final OptionManager optionManager;
+    private final OptionCommandManager optionCommandManager;
 
-    public CommandRouter(SessionListener listener, SubNegotiationDataRouter dataRouter, OptionManager optionManager) {
+    /**
+     * Constructs a new CommandRouter that passes commands to the session listener, data router and option manager as needed.
+     *
+     * @param listener the session listener.
+     * @param dataRouter teh data router.
+     * @param optionCommandManager the option manager.
+     */
+    public CommandRouter(SessionListener listener, SubNegotiationDataRouter dataRouter, OptionCommandManager optionCommandManager) {
         this.listener = listener;
         this.dataRouter = dataRouter;
-        this.optionManager = optionManager;
+        this.optionCommandManager = optionCommandManager;
     }
 
     @Override
@@ -71,27 +79,27 @@ class CommandRouter implements CommandReceiver {
 
     @Override
     public void receivedStartSubNegotiation(int optionId) {
-        dataRouter.receivedStartSubNegotiation(optionManager.getSubNegotiationListener(optionId));
+        dataRouter.receivedStartSubNegotiation(optionCommandManager.getSubNegotiationListener(optionId));
     }
 
     @Override
     public void receivedDo(int optionId) {
-        optionManager.receivedDo(optionId);
+        optionCommandManager.receivedDo(optionId);
     }
 
     @Override
     public void receivedDont(int optionId) {
-        optionManager.receivedDont(optionId);
+        optionCommandManager.receivedDont(optionId);
     }
 
     @Override
     public void receivedWill(int optionId) {
-        optionManager.receivedWill(optionId);
+        optionCommandManager.receivedWill(optionId);
     }
 
     @Override
     public void receivedWont(int optionId) {
-        optionManager.receivedWont(optionId);
+        optionCommandManager.receivedWont(optionId);
     }
 
 }

@@ -1,9 +1,10 @@
 package net.virtualinfinity.telnet.option;
 
-import net.virtualinfinity.telnet.HasOptionCode;
-import net.virtualinfinity.telnet.OptionHandle;
-
 /**
+ * A listener that is informed when an option state changes.
+ *
+ * @see net.virtualinfinity.telnet.OptionHandle#addStateListener(OptionStateListener)
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public interface OptionStateListener {

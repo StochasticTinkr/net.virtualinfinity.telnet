@@ -17,34 +17,73 @@ public class BinaryTransmission extends AbstractNegotiatingOption {
         this.listener = listener;
     }
 
+    /**
+     * Attach a new BinaryTransmission option to the given session.
+     *
+     * @param session The Session.
+     * @param listener The listener to be informed of binary transmission requests.
+     *
+     * @return A new BinaryTransmission object.
+     */
     public static BinaryTransmission on(Session session, BinaryOptionListener listener) {
         return create(ses -> new BinaryTransmission(ses, listener), session);
     }
 
+    /**
+     * Ask the remote side to send in binary.
+     *
+     * @return this.
+     */
     public BinaryTransmission requestRemoteEnableBinary() {
         optionHandle.requestRemoteEnable();
         return this;
     }
 
+    /**
+     * tell the remote side to send in non-binary.
+     *
+     * @return this.
+     */
     public BinaryTransmission requestRemoteDisableBinary() {
         optionHandle.requestRemoteDisable();
         return this;
     }
 
+    /**
+     * Suggest to the other side that we will send in binary.
+     *
+     * @return this.
+     */
     public BinaryTransmission suggestLocalSendBinary() {
         optionHandle.requestLocalEnable();
         return this;
     }
 
+    /**
+     * Tell the other side we will not send in binary.
+     *
+     * @return this.
+     */
     public BinaryTransmission disableSendingBinary() {
         optionHandle.requestLocalDisable();
         return this;
     }
 
+    /**
+     * Allow this side to accept a request to send binary to the remote side.
+     *
+     * @return this.
+     */
     public BinaryTransmission allowLocal() {
         optionHandle.allowLocal();
         return this;
     }
+
+    /**
+     * Allow this side to accept an offer to have the remote side send binary.
+     *
+     * @return this.
+     */
     public BinaryTransmission allowRemote() {
         optionHandle.allowRemote();
         return this;
@@ -87,7 +126,7 @@ public class BinaryTransmission extends AbstractNegotiatingOption {
         @Override
         public void disabledRemotely() {
             if (listener.isRemoteSendingBinary()) {
-                listener.remoteWillNvtAscii();
+                listener.remoteWillSendNvtAscii();
             }
         }
     }
@@ -100,8 +139,13 @@ public class BinaryTransmission extends AbstractNegotiatingOption {
 
         /**
          * Called when the remote side was sending binary, but has demanded to stop.
+         *
+         * Per the RFC, when "BINARY" mode is disabled, you must enter "NVT ASCII" mode.
+         *
+         * This is only called if {@link #isRemoteSendingBinary()} returned true and the
+         * option was disabled.
          */
-        void remoteWillNvtAscii();
+        void remoteWillSendNvtAscii();
 
         /**
          * @return true if the current understanding is that the remote side is sending binary.
@@ -113,6 +157,10 @@ public class BinaryTransmission extends AbstractNegotiatingOption {
         void localWillSendBinary();
         /**
          * Called when the local side was sending binary, but has demanded to stop.
+         * Per the RFC, when "BINARY" mode is disabled, you must enter "NVT ASCII" mode.
+         *
+         * This is only called if {@link #isLocalSendingBinary()} returned true and the
+         * option was disabled.
          */
         void localWillSendNvtAscii();
 

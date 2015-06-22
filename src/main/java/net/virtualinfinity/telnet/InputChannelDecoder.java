@@ -6,12 +6,22 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
+ * Decodes received data as a telnet stream, sending the data to the given CommandReceiver.
+ *
+ * @see StreamState
+ * @see CommandReceiver
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 class InputChannelDecoder implements ByteBufferConsumer {
     private StreamState state = StreamState.initial();
     private final CommandReceiver commandReceiver;
 
+    /**
+     * Received data stream will be decoded and sent to the given receiver.
+     *
+     * @param commandReceiver The command receiver.
+     */
     public InputChannelDecoder(CommandReceiver commandReceiver) {
         this.commandReceiver = commandReceiver;
     }

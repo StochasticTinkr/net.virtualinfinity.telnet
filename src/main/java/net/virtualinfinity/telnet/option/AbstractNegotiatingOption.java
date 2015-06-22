@@ -7,9 +7,10 @@ import net.virtualinfinity.telnet.SubNegotiationOutputChannel;
 
 import java.nio.ByteBuffer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
+ * This base class handles creating an attached option handler.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 abstract class AbstractNegotiatingOption {
@@ -23,7 +24,8 @@ abstract class AbstractNegotiatingOption {
 
     /**
      * This method is used to help silence the compiler.  Don't believe me? Try to inline it.
-     * @param ano
+     *
+     * @param ano the AbstractNegotiatingOption to attach.
      */
     private static void doAttach(AbstractNegotiatingOption ano) {
         ano.attach();
@@ -49,8 +51,14 @@ abstract class AbstractNegotiatingOption {
         outputChannel.sendSubNegotiation(optionHandle.optionCode(), data);
     }
 
+    /**
+     * @return the SubNegotiationListener that handles this option, or null if no sub-negotiation is needed.
+     */
     protected abstract SubNegotiationListener getNegotiationListener();
 
+    /**
+     * @return the option state listener that handles this option, or null of no option-state listener is needed.
+     */
     protected abstract OptionStateListener getStateListener();
 
 }

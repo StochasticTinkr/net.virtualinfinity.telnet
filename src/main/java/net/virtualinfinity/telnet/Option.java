@@ -1,6 +1,9 @@
 package net.virtualinfinity.telnet;
 
 /**
+ * <a href="http://www.iana.org/assignments/telnet-options/telnet-options.xhtml">Telnet Options</a> as defined by IANA
+ * as of June 22nd, 2015.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public enum Option implements HasOptionCode {
@@ -54,14 +57,16 @@ public enum Option implements HasOptionCode {
     KERMIT(47),
     SEND_URL(48),
     FORWARD_X(49),
+    // 50 - 137 Unassigned
     TELOPT_PRAGMA_LOGON(138),
     TELOPT_SSPI_LOGON(139),
     TELOPT_PRAGMA_HEARTBEAT(140),
+    // 141-254 Unassigned
     EXTENDED_OPTIONS_LIST(255),
     ;
-    private static Option[] byId = new Option[256];
+    private static final Option[] byId = new Option[256];
     static {
-        for (Option option: values()) {
+        for (final Option option: values()) {
             byId[option.optionCode()] = option;
         }
     }

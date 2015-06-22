@@ -1,6 +1,10 @@
 package net.virtualinfinity.telnet.option;
 
 /**
+ * A listener for window size reports.
+ *
+ * @see NegotiateAboutWindowSize#addRemoteWindowSizeListener(WindowSizeListener)
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public interface WindowSizeListener {

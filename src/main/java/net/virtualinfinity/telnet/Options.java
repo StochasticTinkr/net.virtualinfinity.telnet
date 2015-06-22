@@ -1,16 +1,26 @@
 package net.virtualinfinity.telnet;
 
-import net.virtualinfinity.telnet.option.OptionStateListener;
-import net.virtualinfinity.telnet.option.handlers.OptionReceiver;
-import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
-
 /**
+ * Provides access to option handles by option code.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public interface Options {
+    /**
+     * Get the OptionHandle for the option code of the given object.
+     *
+     * @param hasOptionCode an object that has an option code.
+     *
+     * @return The corresponding OptionHandle. Never null.
+     */
     OptionHandle option(HasOptionCode hasOptionCode);
-    OptionHandle option(int optionCode);
 
-    @Deprecated
-    <T, R extends SubNegotiationReceiver<T> &OptionReceiver<T>> OptionHandle installOptionReceiver(R receiver);
+    /**
+     * Get the OptionHandle for the given optionCode.
+     *
+     * @param optionCode the option id
+     *
+     * @return the option handle.
+     */
+    OptionHandle option(int optionCode);
 }

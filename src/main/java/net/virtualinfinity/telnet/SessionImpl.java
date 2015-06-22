@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
+ * An implementation of the Session Facade.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 final class SessionImpl implements Session {
@@ -12,6 +14,13 @@ final class SessionImpl implements Session {
     private final SubNegotiationOutputChannel subNegotiationOutputChannel;
     private final Closeable closer;
 
+    /**
+     * Constructs a new Session facade.
+     * @param options the options instance.
+     * @param outputChannel the output channel
+     * @param subNegotiationOutputChannel the sub-negotiation output channel
+     * @param closer the action to perform on close.
+     */
     SessionImpl(Options options, OutputChannel outputChannel, SubNegotiationOutputChannel subNegotiationOutputChannel, Closeable closer) {
         this.options = options;
         this.outputChannel = outputChannel;

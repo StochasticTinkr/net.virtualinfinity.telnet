@@ -7,14 +7,29 @@ import java.nio.ByteBuffer;
 import java.util.function.ObjIntConsumer;
 
 /**
+ * Represents the current state of the telnet stream. Used by the {@link InputChannelDecoder}.
+ *
+ * This is basically a hand-coded lexer recognizer.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
-public abstract class StreamState {
+abstract class StreamState {
     private static final StreamState NORMAL_STATE = new NormalState();
     private static final StreamState IN_IAC = new InIAC();
 
+    /**
+     * Attempt to process some of the byte buffer.
+     *
+     * @param buffer incoming data.
+     * @param commandReceiver the command receiver to dispatch commands to.
+     * @return the new state.
+     * @throws IOException
+     */
     public abstract StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException;
 
+    /**
+     * @return the initial state for streams.
+     */
     public static StreamState initial() {
         return NORMAL_STATE;
     }

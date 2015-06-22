@@ -4,16 +4,21 @@ import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
 
 /**
+ * Manages the state of an option.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 class OptionState {
+    /**
+     * The state at one end of the connection.
+     */
     private static class EndState
     {
         /**
          * Remote sent "DO" or "WILL"
          */
-
         private boolean remoteWants;
+
         /**
          * Local replied "DO" or "WILL
          */
@@ -55,14 +60,25 @@ class OptionState {
 
     }
 
+    /**
+     * The responses to send in the case of a state change.
+     */
     private static class Responses {
         private final Function<OptionState, EndState> endGetter;
-        private final OptionManagerImpl.Response requestDisable;
-        private final ObjIntConsumer<OptionManagerImpl> enabled;
-        private final ObjIntConsumer<OptionManagerImpl> disabled;
-        private final ObjIntConsumer<OptionManagerImpl> requestEnable;
+        private final OptionCommandManagerImpl.Response requestDisable;
+        private final ObjIntConsumer<OptionCommandManagerImpl> enabled;
+        private final ObjIntConsumer<OptionCommandManagerImpl> disabled;
+        private final ObjIntConsumer<OptionCommandManagerImpl> requestEnable;
 
-        public Responses(Function<OptionState, EndState> endGetter, OptionManagerImpl.Response requestDisable, ObjIntConsumer<OptionManagerImpl> requestEnable, ObjIntConsumer<OptionManagerImpl> enabled, ObjIntConsumer<OptionManagerImpl> disabled) {
+        /**
+         *
+         * @param endGetter Supplier of the "end" this is for.
+         * @param requestDisable The response that causes us to send a disable request (WON'T, DON'T).
+         * @param requestEnable The response that causes us to send an enable request (WILL, DO)
+         * @param enabled The response that causes us to dispatch an "Enabled" event to the appropriate listeners.
+         * @param disabled The response that causes us to dispatch an "Disabled" event to the appropriate listeners.
+         */
+        public Responses(Function<OptionState, EndState> endGetter, OptionCommandManagerImpl.Response requestDisable, ObjIntConsumer<OptionCommandManagerImpl> requestEnable, ObjIntConsumer<OptionCommandManagerImpl> enabled, ObjIntConsumer<OptionCommandManagerImpl> disabled) {
             this.endGetter = endGetter;
             this.requestDisable = requestDisable;
             this.requestEnable = requestEnable;
@@ -70,7 +86,14 @@ class OptionState {
             this.disabled = disabled;
         }
 
-        public ObjIntConsumer<OptionManagerImpl> remoteDisables(OptionState state) {
+        /**
+         * Returns the action that should be performed when the remote disables the given option.
+         *
+         * @param state the option state.
+         *
+         * @return the action to perform.
+         */
+        public ObjIntConsumer<OptionCommandManagerImpl> remoteDisables(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.remoteWants = false;
             if (end.isEnabled()) {
@@ -80,10 +103,17 @@ class OptionState {
                     return disabled(end);
                 }
             }
-            return OptionManagerImpl.Response.NO_RESPONSE;
+            return OptionCommandManagerImpl.Response.NO_RESPONSE;
         }
 
-        public ObjIntConsumer<OptionManagerImpl> localDisables(OptionState state) {
+        /**
+         * Returns the action that should be performed when the local side disables the given option.
+         *
+         * @param state the option state.
+         *
+         * @return the action to perform.
+         */
+        public ObjIntConsumer<OptionCommandManagerImpl> localDisables(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.localWants = false;
             if (end.remoteWants) {
@@ -92,12 +122,26 @@ class OptionState {
             return disabled(end);
         }
 
-        public ObjIntConsumer<OptionManagerImpl> disabled(EndState end) {
+        /**
+         * Returns the action that should be performed when the option is disabled.
+         *
+         * @param end the option end that this applies to.
+         *
+         * @return the action to perform.
+         */
+        public ObjIntConsumer<OptionCommandManagerImpl> disabled(EndState end) {
             end.enabled = false;
             return disabled;
         }
 
-        public ObjIntConsumer<OptionManagerImpl> localWants(OptionState state) {
+        /**
+         * Returns the action that should be performed when the local side requests the given option.
+         *
+         * @param state the option state.
+         *
+         * @return the action to perform.
+         */
+        public ObjIntConsumer<OptionCommandManagerImpl> localWants(OptionState state) {
             final EndState end = endGetter.apply(state);
             end.allow(); // Force allowed, since we're advertising it.
             end.localWants();
@@ -107,12 +151,26 @@ class OptionState {
             return requestEnable;
         }
 
-        public ObjIntConsumer<OptionManagerImpl> enabled(EndState end) {
+        /**
+         * Returns the action that should be performed when the option is enabled.
+         *
+         * @param end the option end that this applies to.
+         *
+         * @return the action to perform.
+         */
+        public ObjIntConsumer<OptionCommandManagerImpl> enabled(EndState end) {
             end.enabled = true;
             return enabled;
         }
 
-        public ObjIntConsumer<OptionManagerImpl> remoteWants(OptionState state) {
+        /**
+         * Returns the action that should be performed when the remote side wants the given option.
+         *
+         * @param state the option state.
+         *
+         * @return the action to perform.
+         */
+        public ObjIntConsumer<OptionCommandManagerImpl> remoteWants(OptionState state) {
             final EndState end = endGetter.apply(state);
             if (!end.isSupported()) {
                 return requestDisable;
@@ -120,7 +178,7 @@ class OptionState {
             end.remoteWants();
             if (end.localWants) {
                 if (end.isEnabled()) {
-                    return OptionManagerImpl.Response.NO_RESPONSE; // no change.
+                    return OptionCommandManagerImpl.Response.NO_RESPONSE; // no change.
                 }
                 return enabled(end);
             }
@@ -128,15 +186,28 @@ class OptionState {
         }
     }
 
+    /**
+     * Responses to requests for local options.
+     */
     private static final Responses localResponse =
-        new Responses(OptionState::local, OptionManagerImpl.Response.SEND_WONT, OptionManagerImpl.Response.SEND_WILL,
-            OptionManagerImpl.Response.IS_ENABLED_LOCALLY, OptionManagerImpl.Response.IS_DISABLED_LOCALLY);
+        new Responses(OptionState::local, OptionCommandManagerImpl.Response.SEND_WONT, OptionCommandManagerImpl.Response.SEND_WILL,
+            OptionCommandManagerImpl.Response.IS_ENABLED_LOCALLY, OptionCommandManagerImpl.Response.IS_DISABLED_LOCALLY);
 
+    /**
+     * Responses to requests for remote options.
+     */
     private static final Responses remoteResponse =
-        new Responses(OptionState::remote, OptionManagerImpl.Response.SEND_DONT, OptionManagerImpl.Response.SEND_DO,
-            OptionManagerImpl.Response.IS_ENABLED_REMOTELY, OptionManagerImpl.Response.IS_DISABLED_REMOTELY);
+        new Responses(OptionState::remote, OptionCommandManagerImpl.Response.SEND_DONT, OptionCommandManagerImpl.Response.SEND_DO,
+            OptionCommandManagerImpl.Response.IS_ENABLED_REMOTELY, OptionCommandManagerImpl.Response.IS_DISABLED_REMOTELY);
 
+    /**
+     * The state of the option on the remote end.
+     */
     private final EndState remote = new EndState();
+
+    /**
+     * The state of the option on the local end.
+     */
     private final EndState local = new EndState();
 
     public EndState remote() {
@@ -146,49 +217,89 @@ class OptionState {
     public EndState local() {
         return local;
     }
-    public ObjIntConsumer<OptionManagerImpl> receivedDo() {
+
+    /**
+     * @return the action to perform when we receive a DO.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> receivedDo() {
         return localResponse.remoteWants(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> receivedWill() {
+    /**
+     * @return the action to perform when we receive a WILL.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> receivedWill() {
         return remoteResponse.remoteWants(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> receivedDont() {
+    /**
+     * @return the action to perform when we receive a DON'T.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> receivedDont() {
         return localResponse.remoteDisables(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> receivedWont() {
+    /**
+     * @return the action to perform when we receive a WON'T.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> receivedWont() {
         return remoteResponse.remoteDisables(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> enableLocal() {
+    /**
+     * @return the action to perform when we want to enable the option locally.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> enableLocal() {
         return localResponse.localWants(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> enableRemote() {
+    /**
+     * @return the action to perform when we want to enable the option remotely.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> enableRemote() {
         return remoteResponse.localWants(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> disableLocal() {
+    /**
+     * @return the action to perform when we want to disable the option locally.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> disableLocal() {
         return localResponse.localDisables(this);
     }
 
-    public ObjIntConsumer<OptionManagerImpl> disableRemote() {
+    /**
+     * @return the action to perform when we want to enable the option remotely.
+     */
+    public ObjIntConsumer<OptionCommandManagerImpl> disableRemote() {
         return remoteResponse.localDisables(this);
     }
 
+    /**
+     * Mark the remote option as being allowed. Future suggestions by the remote side that they enable the option will
+     * be responded with positively.
+     */
     public void allowRemote() {
         remote().allow();
     }
 
+    /**
+     * Mark the local option as being allowed. Future suggestions by the remote side that we enable the option will
+     * be responded with positively.
+     */
     public void allowLocal() {
         local().allow();
     }
 
+    /**
+     * @return true if there is agreement that this option is enabled on the remote side.
+     */
     public boolean isEnabledRemotely() {
         return remote().isEnabled();
     }
+
+    /**
+     * @return true if there is agreement that this option is enabled on the local side.
+     */
     public boolean isEnabledLocally() {
         return local().isEnabled();
     }

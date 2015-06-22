@@ -3,10 +3,12 @@ package net.virtualinfinity.telnet;
 import net.virtualinfinity.telnet.option.SubNegotiationListener;
 import net.virtualinfinity.telnet.option.handlers.OptionSessionHandler;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
 /**
+ * Routes sub-negotiation data to the right place.
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 class SubNegotiationDataRouterImpl implements SubNegotiationDataRouter {
@@ -41,11 +43,12 @@ class SubNegotiationDataRouterImpl implements SubNegotiationDataRouter {
     @Override
     public void receivedStartSubNegotiation(SubNegotiationListener optionSessionHandler) {
         this.optionSessionHandler = optionSessionHandler;
+        // Set the receiver to the subNegotiation data, or a null receiver if no listener.
         if (optionSessionHandler != null) {
             receiver = optionSessionHandler::subNegotiationData;
             optionSessionHandler.startSubNegotiation();
         } else {
-            receiver = byteBuffer -> {};
+            receiver = Buffer::clear;
         }
     }
 
