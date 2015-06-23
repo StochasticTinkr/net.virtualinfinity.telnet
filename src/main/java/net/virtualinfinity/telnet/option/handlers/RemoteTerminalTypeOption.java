@@ -1,6 +1,7 @@
-package net.virtualinfinity.telnet;
+package net.virtualinfinity.telnet.option.handlers;
 
-import net.virtualinfinity.telnet.option.handlers.SubNegotiationReceiver;
+import net.virtualinfinity.telnet.Option;
+import net.virtualinfinity.telnet.SubNegotiationOutputChannel;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -8,6 +9,7 @@ import java.nio.charset.Charset;
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
+@Deprecated
 public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuffer> {
     private final RemoteTerminalTypeListener remoteTerminalTypeListener;
 
@@ -22,7 +24,7 @@ public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuff
 
 
     @Override
-    public ByteBuffer subNegotiationData(ByteBuffer data, TelnetSession session, ByteBuffer buffer) {
+    public ByteBuffer subNegotiationData(ByteBuffer data, ByteBuffer buffer) {
         if (buffer == null) {
             return null;
         }
@@ -34,7 +36,7 @@ public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuff
     }
 
     @Override
-    public ByteBuffer endSubNegotiation(TelnetSession session, ByteBuffer buffer) {
+    public ByteBuffer endSubNegotiation(ByteBuffer buffer) {
         if (buffer == null) {
             return null;
         }
@@ -42,17 +44,17 @@ public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuff
         if (buffer.limit() > 0 && buffer.get(buffer.limit()-1) == 0) {
             buffer.limit(buffer.limit()-1);
         }
-        remoteTerminalTypeListener.terminalSet(Charset.forName("US-ASCII").decode(buffer).toString(), session);
+        remoteTerminalTypeListener.terminalSet(Charset.forName("US-ASCII").decode(buffer).toString());
 
         return null;
     }
 
     @Override
-    public ByteBuffer startSubNegotiation(TelnetSession session, ByteBuffer buffer) {
+    public ByteBuffer startSubNegotiation(ByteBuffer buffer) {
         return ByteBuffer.allocate(64);
     }
 
-    public void requestNextTerminalType(TelnetSession session) {
-        session.sendSubNegotiation(optionCode(), ByteBuffer.wrap(new byte[] { 1 }));
+    public void requestNextTerminalType(SubNegotiationOutputChannel output) {
+        output.sendSubNegotiation(optionCode(), ByteBuffer.wrap(new byte[] { 1 }));
     }
 }

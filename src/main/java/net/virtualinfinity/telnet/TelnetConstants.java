@@ -1,6 +1,8 @@
 package net.virtualinfinity.telnet;
 
 /**
+ * Values of constants defined in the Telnet RFC.
+ *
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
 public class TelnetConstants {
@@ -21,6 +23,13 @@ public class TelnetConstants {
     public static final byte DONT      = (byte)254;
     public static final byte IAC       = (byte)255;
 
+    /**
+     * Get the name of the constant that matches the given input, or null if none match.
+     *
+     * @param input the input byte.
+     *
+     * @return the name, or null.
+     */
     public static String name(byte input) {
         switch (input) {
             case SE       : return "SE";

@@ -1,14 +1,15 @@
 package net.virtualinfinity.telnet.option.handlers;
 
 import net.virtualinfinity.telnet.Option;
-import net.virtualinfinity.telnet.TelnetSession;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.function.IntConsumer;
 
 /**
  * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
  */
+@Deprecated
 public class NegotiateAboutWindowSizeHandler implements SubNegotiationReceiver<ByteBuffer> {
     private final WindowSizeListener windowSizeListener;
 
@@ -17,7 +18,7 @@ public class NegotiateAboutWindowSizeHandler implements SubNegotiationReceiver<B
     }
 
     public NegotiateAboutWindowSizeHandler(IntConsumer widthListener) {
-        this((width, height, session) -> widthListener.accept(width));
+        this((width, height) -> widthListener.accept(width));
     }
 
     @Override
@@ -26,12 +27,12 @@ public class NegotiateAboutWindowSizeHandler implements SubNegotiationReceiver<B
     }
 
     @Override
-    public ByteBuffer startSubNegotiation(TelnetSession session, ByteBuffer sessionData) {
+    public ByteBuffer startSubNegotiation(ByteBuffer sessionData) {
         return ByteBuffer.allocate(4);
     }
 
     @Override
-    public ByteBuffer subNegotiationData(ByteBuffer data, TelnetSession session, ByteBuffer sessionData) {
+    public ByteBuffer subNegotiationData(ByteBuffer data, ByteBuffer sessionData) {
         if (sessionData != null) {
             while (sessionData.hasRemaining() && data.hasRemaining()) {
                 sessionData.put(data.get());
@@ -41,20 +42,14 @@ public class NegotiateAboutWindowSizeHandler implements SubNegotiationReceiver<B
     }
 
     @Override
-    public ByteBuffer endSubNegotiation(TelnetSession session, ByteBuffer sessionData) {
+    public ByteBuffer endSubNegotiation(ByteBuffer sessionData) {
         if (sessionData != null && !sessionData.hasRemaining() && windowSizeListener != null) {
             sessionData.flip();
-            final int width = readTwo(sessionData);
-            final int height = readTwo(sessionData);
-            windowSizeListener.windowSizeReported(width, height, session);
+            sessionData.order(ByteOrder.BIG_ENDIAN);
+            final int width = sessionData.getShort();
+            final int height = sessionData.getShort();
+            windowSizeListener.windowSizeReported(width, height);
         }
         return null;
     }
-
-    private int readTwo(ByteBuffer optionBuffer) {
-        final int high = optionBuffer.get() & 255;
-        final int low = optionBuffer.get() & 255;
-        return high << 8 | low;
-    }
-
 }
