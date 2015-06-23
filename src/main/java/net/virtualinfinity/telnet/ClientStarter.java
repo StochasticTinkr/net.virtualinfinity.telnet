@@ -3,7 +3,6 @@ package net.virtualinfinity.telnet;
 import net.virtualinfinity.nio.*;
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 
 /**
  * A helper class to start Telnet sessions which connect to a remote port.
@@ -13,21 +12,24 @@ import java.nio.channels.ClosedChannelException;
  */
 public class ClientStarter {
     private final ConnectionInitiator connectionInitiator;
+    public final SessionStarter sessionStarter;
 
     /**
      * Create a new client starter with a new ConnectionInitiator.
      */
     public ClientStarter() {
-        this(new ConnectionInitiator());
+        this(new ConnectionInitiator(), SessionStarters.client());
     }
 
     /**
      * Create a new client starter with the given ConnectionInitiator.
      *
      * @param connectionInitiator the ConnectionInitiator to use.
+     * @param sessionStarter the SessionStarter to use to start the session.
      */
-    public ClientStarter(ConnectionInitiator connectionInitiator) {
+    public ClientStarter(ConnectionInitiator connectionInitiator, SessionStarter sessionStarter) {
         this.connectionInitiator = connectionInitiator;
+        this.sessionStarter = sessionStarter;
     }
 
     /**
@@ -52,31 +54,23 @@ public class ClientStarter {
      */
     public void connect(EventLoop loop, String hostname, int port, SessionListener sessionListener) {
         final ConnectionListener connectionListener = new ClientConnectionListener(sessionListener);
-        connectionInitiator.connect(loop, hostname, port, connectionListener, socketChannel -> {
-                try {
-                    final OutputBuffer outputBuffer = new OutputBuffer();
-                    final OptionCommandManagerImpl optionManager = new OptionCommandManagerImpl(outputBuffer::append);
-                    final OutputChannel outputChannel = new OutputChannel(outputBuffer::append);
-                    final SubNegotiationOutputChannel subNegotiationOutputChannel = optionManager.subNegotiationOutputChannel(outputChannel);
-                    final Session session = new SessionImpl(optionManager.options(), outputChannel, subNegotiationOutputChannel, socketChannel::close);
-                    final CommandRouter commandReceiver = new CommandRouter(sessionListener, new SubNegotiationDataRouterImpl(sessionListener), optionManager);
-                    final ClientSessionConnectionListener conListener = new ClientSessionConnectionListener(sessionListener, session);
-                    final InputChannelDecoder decoder = new InputChannelDecoder(commandReceiver);
-                    final SocketSelectionActions socketSelectionActions = new SocketSelectionActions(socketChannel, conListener, decoder, outputBuffer, 2048, false);
+        connectionInitiator.connect(loop, hostname, port, connectionListener, socketChannel -> startSession(loop, sessionListener, socketChannel));
 
-                    socketSelectionActions.register(loop);
-                } catch (ClosedChannelException e) {
-                    connectionListener.connectionFailed(e);
-                }
-            });
+    }
 
+    private void startSession(EventLoop loop, SessionListener sessionListener, SocketChannelInterface socketChannel) {
+        try {
+            sessionStarter.startSession(socketChannel, sessionListener, loop);
+        } catch (final IOException ignore) {
+            sessionListener.connectionFailed(ignore);
+        }
     }
 
 
     /**
      * The connection listener for the connection phase before we've got a session.
      */
-    private static class ClientConnectionListener implements ConnectionListener {
+    static class ClientConnectionListener implements ConnectionListener {
         protected final SessionListener sessionListener;
 
         public ClientConnectionListener(SessionListener sessionListener) {
@@ -105,25 +99,4 @@ public class ClientStarter {
         }
     }
 
-    /**
-     * The connection listener for the phase after we've got a session.
-     */
-    private static class ClientSessionConnectionListener extends ClientConnectionListener {
-        private final Session session;
-
-        public ClientSessionConnectionListener(SessionListener sessionListener, Session session) {
-            super(sessionListener);
-            this.session = session;
-        }
-
-        @Override
-        public void connecting() {
-        }
-
-        @Override
-        public void connected() {
-            sessionListener.connected(session);
-        }
-
-    }
 }
