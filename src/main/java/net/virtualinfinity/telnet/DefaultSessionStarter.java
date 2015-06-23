@@ -17,14 +17,6 @@ class DefaultSessionStarter implements SessionStarter {
     private final int inputBufferSize;
     private final boolean sendAllBeforeReading;
 
-
-    /**
-     * Creates a session starter that
-     */
-    DefaultSessionStarter() {
-        this(2048, false);
-    }
-
     public DefaultSessionStarter(int inputBufferSize, boolean sendAllBeforeReading) {
         this.inputBufferSize = inputBufferSize;
         this.sendAllBeforeReading = sendAllBeforeReading;
