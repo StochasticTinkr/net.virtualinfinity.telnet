@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * @see StreamState
  * @see CommandReceiver
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 class InputChannelDecoder implements ByteBufferConsumer {
     private StreamState state = StreamState.initial();
@@ -27,7 +27,7 @@ class InputChannelDecoder implements ByteBufferConsumer {
     }
 
     @Override
-    public void accept(ByteBuffer inputBuffer) throws IOException {
+    public void accept(ByteBuffer inputBuffer)  {
         while (inputBuffer.hasRemaining()) {
             state = state.accept(inputBuffer, commandReceiver);
         }

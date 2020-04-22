@@ -6,7 +6,7 @@ import java.io.IOException;
 /**
  * An implementation of the Session Facade.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 final class SessionImpl implements Session {
     private final Options options;

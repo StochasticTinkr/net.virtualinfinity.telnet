@@ -7,7 +7,7 @@ import net.virtualinfinity.telnet.Session;
  * Handles the <a href="http://tools.ietf.org/html/rfc856">Binary Transmission</a> Option.
  * It's important to note the interaction of this option with other options which define the "mode".
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class BinaryTransmission extends AbstractNegotiatingOption {
     private final BinaryOptionListener listener;

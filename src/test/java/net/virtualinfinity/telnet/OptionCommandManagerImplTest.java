@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class OptionCommandManagerImplTest {
     public static final byte OPTION_ID = 1;

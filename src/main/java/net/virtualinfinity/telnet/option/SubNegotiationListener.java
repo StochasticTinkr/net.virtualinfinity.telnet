@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
  *
  * @see net.virtualinfinity.telnet.OptionHandle#setSubNegotiationListener(SubNegotiationListener)
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface SubNegotiationListener {
     /**

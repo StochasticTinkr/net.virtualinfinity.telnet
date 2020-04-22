@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class CommandRouterTest {
     public static final int OPTION_ID = 10;

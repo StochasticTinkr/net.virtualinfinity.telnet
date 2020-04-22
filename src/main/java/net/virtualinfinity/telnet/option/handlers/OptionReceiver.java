@@ -3,7 +3,7 @@ package net.virtualinfinity.telnet.option.handlers;
 import net.virtualinfinity.telnet.HasOptionCode;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 @Deprecated
 public interface OptionReceiver<T> extends HasOptionCode {

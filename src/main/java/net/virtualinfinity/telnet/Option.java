@@ -4,7 +4,7 @@ package net.virtualinfinity.telnet;
  * <a href="http://www.iana.org/assignments/telnet-options/telnet-options.xhtml">Telnet Options</a> as defined by IANA
  * as of June 22nd, 2015.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public enum Option implements HasOptionCode {
     BINARY_TRANSMISSION(0),

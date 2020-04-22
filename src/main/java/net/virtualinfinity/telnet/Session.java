@@ -11,7 +11,7 @@ import java.io.Closeable;
  * @see ClientStarter#connect(EventLoop, String, SessionListener)
  * @see ClientStarter#connect(EventLoop, String, int, SessionListener)
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface Session extends Closeable {
     /**

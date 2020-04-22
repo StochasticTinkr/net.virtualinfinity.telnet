@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 @Deprecated
 public class RemoteTerminalTypeOption implements SubNegotiationReceiver<ByteBuffer> {

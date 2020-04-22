@@ -2,7 +2,6 @@ package net.virtualinfinity.telnet;
 
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.function.ObjIntConsumer;
 
@@ -11,7 +10,7 @@ import java.util.function.ObjIntConsumer;
  *
  * This is basically a hand-coded lexer recognizer.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 abstract class StreamState {
     private static final StreamState NORMAL_STATE = new NormalState();
@@ -23,9 +22,8 @@ abstract class StreamState {
      * @param buffer incoming data.
      * @param commandReceiver the command receiver to dispatch commands to.
      * @return the new state.
-     * @throws IOException
      */
-    public abstract StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException;
+    public abstract StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver);
 
     /**
      * @return the initial state for streams.
@@ -42,7 +40,7 @@ abstract class StreamState {
         private static final WaitingForOption IN_SB = new WaitingForOption(CommandReceiver::receivedStartSubNegotiation);
 
         @Override
-        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException {
+        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) {
             final byte command = buffer.get();
             switch (command) {
                 case TelnetConstants.IAC:
@@ -108,7 +106,7 @@ abstract class StreamState {
 
     private static class NormalState extends StreamState {
         @Override
-        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) throws IOException {
+        public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) {
             final ByteBuffer sliced = buffer.slice();
             while (sliced.hasRemaining()) {
                 if (sliced.get() == TelnetConstants.IAC) {

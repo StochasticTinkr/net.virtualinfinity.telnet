@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.function.BiFunction;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 @Deprecated
 public final class OptionSessionHandlerImpl<T> implements OptionSessionHandler {

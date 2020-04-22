@@ -14,7 +14,7 @@ import java.util.Collection;
  * This allows you to send window size to the remote end, if they care about it, and it also allows you to request
  * the remote end send you window size updates.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public final class NegotiateAboutWindowSize extends AbstractNegotiatingOption implements WindowSizeListener {
     private final Collection<WindowSizeListener> windowSizeListeners = new ArrayList<>();

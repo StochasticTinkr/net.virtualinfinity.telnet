@@ -1,16 +1,15 @@
 package net.virtualinfinity.telnet;
 
 import net.virtualinfinity.nio.EventLoop;
-import net.virtualinfinity.nio.SocketChannelInterface;
 
-import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SocketChannel;
 
 /**
  * Provides a method for starting a telnet session.
  *
  * @see DefaultSessionStarter
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface SessionStarter {
     /**
@@ -23,5 +22,5 @@ public interface SessionStarter {
      *
      * @throws ClosedChannelException if the channel is closed.
      */
-    Session startSession(SocketChannelInterface socketChannel, SessionListener sessionListener, EventLoop loop) throws ClosedChannelException;
+    Session startSession(SocketChannel socketChannel, SessionListener sessionListener, EventLoop loop) throws ClosedChannelException;
 }

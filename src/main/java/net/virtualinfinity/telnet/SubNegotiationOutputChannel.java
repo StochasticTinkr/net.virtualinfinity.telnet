@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Provides a channel for sending sub-negotiation data.  The data is properly escaped/encoded before being sent.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface SubNegotiationOutputChannel {
     /**

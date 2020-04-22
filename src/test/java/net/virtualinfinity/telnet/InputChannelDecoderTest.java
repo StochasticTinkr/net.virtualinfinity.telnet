@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class InputChannelDecoderTest {
     public static final byte OPTION_ID = 10;
@@ -122,13 +122,7 @@ public class InputChannelDecoderTest {
     }
 
     private void acceptData(byte...data) {
-        try {
-            new InputChannelDecoder(commandReceiver).accept(ByteBuffer.wrap(data));
-        } catch (final IOException ioException) {
-            final AssertionFailedError error = new AssertionFailedError("Unexpected IOException");
-            error.addSuppressed(ioException);
-            throw error;
-        }
+        new InputChannelDecoder(commandReceiver).accept(ByteBuffer.wrap(data));
     }
 
     private ExpectationBuilder expectOptionCommand(final ObjIntConsumer<CommandReceiver> optionCommand) {

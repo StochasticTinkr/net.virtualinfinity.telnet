@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 /**
  * Defines an object interested in listening to Telnet Session events.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface SessionListener {
     /**

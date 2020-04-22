@@ -3,12 +3,13 @@ package net.virtualinfinity.telnet;
 import net.virtualinfinity.nio.*;
 
 import java.io.IOException;
+import java.nio.channels.SocketChannel;
 
 /**
  * A helper class to start Telnet sessions which connect to a remote port.
  *
  * @see ConnectionInitiator
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class ClientStarter {
     private final ConnectionInitiator connectionInitiator;
@@ -58,11 +59,11 @@ public class ClientStarter {
 
     }
 
-    private void startSession(EventLoop loop, SessionListener sessionListener, SocketChannelInterface socketChannel) {
+    private void startSession(EventLoop loop, SessionListener sessionListener, SocketChannel socketChannel) {
         try {
             sessionStarter.startSession(socketChannel, sessionListener, loop);
-        } catch (final IOException ignore) {
-            sessionListener.connectionFailed(ignore);
+        } catch (final IOException e) {
+            sessionListener.connectionFailed(e);
         }
     }
 

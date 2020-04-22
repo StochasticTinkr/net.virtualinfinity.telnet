@@ -2,16 +2,15 @@ package net.virtualinfinity.telnet;
 
 import net.virtualinfinity.nio.EventLoop;
 import net.virtualinfinity.nio.OutputBuffer;
-import net.virtualinfinity.nio.SocketChannelInterface;
 import net.virtualinfinity.nio.SocketSelectionActions;
 
-import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SocketChannel;
 
 /**
  * Provides a default implementation of the SessionStarter.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 class DefaultSessionStarter implements SessionStarter {
     private final int inputBufferSize;
@@ -23,12 +22,12 @@ class DefaultSessionStarter implements SessionStarter {
     }
 
     @Override
-    public Session startSession(SocketChannelInterface socketChannel, SessionListener sessionListener, EventLoop loop) throws ClosedChannelException {
+    public Session startSession(SocketChannel socketChannel, SessionListener sessionListener, EventLoop loop) throws ClosedChannelException {
         final OutputBuffer outputBuffer = new OutputBuffer();
         final OptionCommandManagerImpl optionManager = new OptionCommandManagerImpl(outputBuffer::append);
         final OutputChannel outputChannel = new OutputChannel(outputBuffer::append);
         final SubNegotiationOutputChannel subNegotiationOutputChannel = optionManager.subNegotiationOutputChannel(outputChannel);
-        final Session session = new SessionImpl(optionManager.options(), outputChannel, subNegotiationOutputChannel, socketChannel::close);
+        final Session session = new SessionImpl(optionManager.options(), outputChannel, subNegotiationOutputChannel, socketChannel);
         final CommandRouter commandReceiver = new CommandRouter(sessionListener, new SubNegotiationDataRouterImpl(sessionListener), optionManager);
         final ClientSessionConnectionListener conListener = new ClientSessionConnectionListener(sessionListener, session);
         final InputChannelDecoder decoder = new InputChannelDecoder(commandReceiver);

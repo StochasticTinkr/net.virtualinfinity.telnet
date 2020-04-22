@@ -5,7 +5,7 @@ package net.virtualinfinity.telnet.option;
  *
  * @see NegotiateAboutWindowSize#addRemoteWindowSizeListener(WindowSizeListener)
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface WindowSizeListener {
     /**

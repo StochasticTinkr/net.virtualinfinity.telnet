@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
  * An implementation of the {@link CommandReceiver} interface which routes the commands to
  * other appropriate objects.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 class CommandRouter implements CommandReceiver {
     private final SessionListener listener;

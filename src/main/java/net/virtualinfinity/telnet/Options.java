@@ -3,7 +3,7 @@ package net.virtualinfinity.telnet;
 /**
  * Provides access to option handles by option code.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface Options {
     /**

@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * Routes sub-negotiation data to the right place.
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 class SubNegotiationDataRouterImpl implements SubNegotiationDataRouter {
     private final Consumer<ByteBuffer> streamReceiver;

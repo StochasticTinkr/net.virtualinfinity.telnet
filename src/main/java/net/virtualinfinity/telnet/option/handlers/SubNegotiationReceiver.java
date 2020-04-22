@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
  * This interface is for handlers of options that were enabled by the local side sending "DO"
  * and the remote side sending "WILL".
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 @Deprecated
 public interface SubNegotiationReceiver<T> extends HasOptionCode {

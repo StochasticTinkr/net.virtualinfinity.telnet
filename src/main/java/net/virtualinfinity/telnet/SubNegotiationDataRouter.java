@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 /**
  * Routes sub-negotiation data to the right place.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 interface SubNegotiationDataRouter {
     void receivedEndSubNegotiation();

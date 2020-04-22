@@ -5,7 +5,7 @@ package net.virtualinfinity.telnet.option;
  *
  * @see net.virtualinfinity.telnet.OptionHandle#addStateListener(OptionStateListener)
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface OptionStateListener {
     /**

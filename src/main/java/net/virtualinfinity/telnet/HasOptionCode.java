@@ -2,7 +2,7 @@ package net.virtualinfinity.telnet;
 
 /**
  * Interface for things that have an option code.
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface HasOptionCode {
     /**

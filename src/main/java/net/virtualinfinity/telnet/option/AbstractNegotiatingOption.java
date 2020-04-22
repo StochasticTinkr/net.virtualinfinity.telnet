@@ -11,7 +11,7 @@ import java.util.function.Function;
 /**
  * This base class handles creating an attached option handler.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 abstract class AbstractNegotiatingOption {
     protected final OptionHandle optionHandle;

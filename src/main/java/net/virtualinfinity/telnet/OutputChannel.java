@@ -7,7 +7,7 @@ import java.util.function.Consumer;
  * Manages sending data to the remote end.  Data is escaped/encoded according to the Telnet spec, except that it is always
  * treated as binary data (no character encoding/decoding happens).
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class OutputChannel {
     private final Consumer<ByteBuffer> output;
@@ -42,7 +42,7 @@ public class OutputChannel {
     }
 
     /**
-     * Wrutes the data to the raw output, escaping anything it needs to.
+     * Writes the data to the raw output, escaping anything it needs to.
      *
      * @param data the data to send.
      */

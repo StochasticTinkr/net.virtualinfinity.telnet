@@ -3,7 +3,7 @@ package net.virtualinfinity.telnet;
 /**
  * Values of constants defined in the Telnet RFC.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class TelnetConstants {
     public static final byte SE        = (byte)240;

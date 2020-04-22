@@ -6,7 +6,7 @@ import java.util.function.ObjIntConsumer;
 /**
  * Manages the state of an option.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 class OptionState {
     /**
@@ -306,13 +306,11 @@ class OptionState {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder("{");
-        builder.append(remote().localWants ? "DO" : "DON'T").append("->");
-        builder.append(remote().remoteWants ? "WILL" : "WON'T");
-        builder.append(",");
-        builder.append(local().remoteWants ? "WILL" : "WON'T").append("->");
-        builder.append(local().localWants ? "DO" : "DON'T");
-
-        return builder.append("}").toString();
+        return "{" + (remote().localWants ? "DO" : "DON'T") + "->" +
+                (remote().remoteWants ? "WILL" : "WON'T") +
+                "," +
+                (local().remoteWants ? "WILL" : "WON'T") + "->" +
+                (local().localWants ? "DO" : "DON'T") +
+                "}";
     }
 }

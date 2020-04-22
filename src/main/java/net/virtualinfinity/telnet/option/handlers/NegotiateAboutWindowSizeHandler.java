@@ -7,7 +7,7 @@ import java.nio.ByteOrder;
 import java.util.function.IntConsumer;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 @Deprecated
 public class NegotiateAboutWindowSizeHandler implements SubNegotiationReceiver<ByteBuffer> {

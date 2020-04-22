@@ -16,7 +16,7 @@ package net.virtualinfinity.telnet;
  * <p>
  * Use {@link #client()} or {@link #client(int)} for clients since they are generally user facing, and we expect the remote end to read as much
  * as is given to them, and also that our local user isn't trying to overflow his own buffers.
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public final class SessionStarters {
 

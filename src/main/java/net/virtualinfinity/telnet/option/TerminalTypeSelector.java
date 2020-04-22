@@ -6,7 +6,7 @@ import java.util.Iterator;
  * A local terminal type selector.
  *
  * @see TerminalType
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public interface TerminalTypeSelector extends Iterable<String> {
     /**

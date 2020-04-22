@@ -5,7 +5,7 @@ import net.virtualinfinity.telnet.option.SubNegotiationListener;
 /**
  * Manages the state of options.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 interface OptionCommandManager {
     /**

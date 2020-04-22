@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * Handles the Terminal Type option negotiation.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 public class TerminalType extends AbstractNegotiatingOption {
     private static final byte TTYPE_SEND = 1;

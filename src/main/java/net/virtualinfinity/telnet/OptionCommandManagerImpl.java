@@ -13,7 +13,7 @@ import java.util.function.ObjIntConsumer;
 /**
  * An implementation of the OptionCommandManager.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 class OptionCommandManagerImpl implements OptionCommandManager {
     private static final Logger logger = Logger.getLogger(OptionCommandManagerImpl.class);
@@ -290,7 +290,7 @@ class OptionCommandManagerImpl implements OptionCommandManager {
     }
 
 
-    private final class SubNegotiationOutputChannelImpl implements SubNegotiationOutputChannel {
+    private static final class SubNegotiationOutputChannelImpl implements SubNegotiationOutputChannel {
         private final OptionCommandManagerImpl optionCommandManagerImpl;
         private final OutputChannel outputChannel;
 

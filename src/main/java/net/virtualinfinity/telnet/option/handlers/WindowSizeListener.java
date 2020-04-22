@@ -1,7 +1,7 @@
 package net.virtualinfinity.telnet.option.handlers;
 
 /**
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 @Deprecated
 public interface WindowSizeListener extends net.virtualinfinity.telnet.option.WindowSizeListener {

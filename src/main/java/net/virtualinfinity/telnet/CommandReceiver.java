@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Receives the raw commands as decoded by the {@link InputChannelDecoder}.
  *
- * @author <a href='mailto:Daniel@coloraura.com'>Daniel Pitts</a>
+ * @author Daniel Pitts
  */
 interface CommandReceiver {
     /**
