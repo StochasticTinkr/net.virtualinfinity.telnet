@@ -108,18 +108,29 @@ abstract class StreamState {
         @Override
         public StreamState accept(ByteBuffer buffer, CommandReceiver commandReceiver) {
             final ByteBuffer sliced = buffer.slice();
+            // Search for IAC.
             while (sliced.hasRemaining()) {
                 if (sliced.get() == TelnetConstants.IAC) {
+                    // IAC is found.
                     final int count = sliced.position();
+                    // Set buffer to just after IAC position.
                     buffer.position(buffer.position() + count);
+
+                    // Slice the data before the IAC
                     sliced.rewind();
                     sliced.limit(count-1);
-                    commandReceiver.receivedData(sliced);
+
+                    // Send any data to the commandReceiver.
+                    if (sliced.hasRemaining()) {
+                        commandReceiver.receivedData(sliced);
+                    }
 
                     return IN_IAC;
                 }
             }
-            commandReceiver.receivedData(buffer);
+            // No IAC was found, so just send slice along.
+            sliced.rewind();
+            commandReceiver.receivedData(sliced);
             // Ensure that the buffer has been consumed.
             buffer.position(buffer.limit());
             return this;

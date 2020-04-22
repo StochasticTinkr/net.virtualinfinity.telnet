@@ -1,24 +1,22 @@
 package net.virtualinfinity.telnet;
 
 import net.virtualinfinity.telnet.option.SubNegotiationListener;
-import org.jmock.Expectations;
-import org.jmock.auto.Mock;
-import org.jmock.integration.junit4.JUnitRuleMockery;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.ByteBuffer;
-import java.util.function.Consumer;
-import java.util.function.ObjIntConsumer;
+
+import static org.mockito.Mockito.*;
 
 /**
  * @author Daniel Pitts
  */
+@ExtendWith(MockitoExtension.class)
 public class CommandRouterTest {
     public static final int OPTION_ID = 10;
     public static final byte[] DATA = {0, 1, 2};
-    @Rule
-    public JUnitRuleMockery context = new JUnitRuleMockery();
 
     @Mock
     private SessionListener sessionListener;
@@ -30,112 +28,99 @@ public class CommandRouterTest {
     private SubNegotiationListener optionSessionHandler;
 
     @Test
-    public void testReceivedBreak() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doBreak));
+    public void testReceivedBreak() {
         commandRouter().receivedBreak();
+        verify(sessionListener).doBreak();
     }
 
 
     @Test
-    public void testReceivedInterrupt() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doInterrupt));
+    public void testReceivedInterrupt() {
         commandRouter().receivedInterrupt();
+        verify(sessionListener).doInterrupt();
     }
 
     @Test
-    public void testReceivedAbortOutput() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doAbortOutput));
+    public void testReceivedAbortOutput() {
         commandRouter().receivedAbortOutput();
+        verify(sessionListener).doAbortOutput();
     }
 
     @Test
-    public void testReceivedAreYouThere() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doAreYouThere));
+    public void testReceivedAreYouThere() {
         commandRouter().receivedAreYouThere();
+        verify(sessionListener).doAreYouThere();
     }
 
     @Test
-    public void testReceivedEraseCharacter() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doEraseCharacter));
+    public void testReceivedEraseCharacter() {
         commandRouter().receivedEraseCharacter();
+        verify(sessionListener).doEraseCharacter();
     }
 
     @Test
-    public void testReceivedEraseLine() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doEraseLine));
+    public void testReceivedEraseLine() {
         commandRouter().receivedEraseLine();
+        verify(sessionListener).doEraseLine();
     }
 
     @Test
-    public void testReceivedGoAhead() throws Exception {
-        context.checking(oneOf(sessionListener, SessionListener::doGoAhead));
+    public void testReceivedGoAhead() {
         commandRouter().receivedGoAhead();
+        verify(sessionListener).doGoAhead();
     }
 
     @Test
-    public void testReceivedEndSubNegotiation() throws Exception {
-        context.checking(oneOf(commandManager, SubNegotiationDataRouter::receivedEndSubNegotiation));
+    public void testReceivedEndSubNegotiation() {
         commandRouter().receivedEndSubNegotiation();
+        verify(commandManager).receivedEndSubNegotiation();
     }
 
     @Test
-    public void testReceivedData() throws Exception {
-        context.checking(oneOf(commandManager, cm -> cm.receivedData(ByteBuffer.wrap(DATA))));
-        commandRouter().receivedData(ByteBuffer.wrap(DATA));
+    public void testReceivedData() {
+        final ByteBuffer data = ByteBuffer.wrap(DATA);
+        commandRouter().receivedData(data);
+        verify(commandManager).receivedData(data);
     }
 
     @Test
-    public void testReceivedIAC() throws Exception {
-        context.checking(oneOf(commandManager, SubNegotiationDataRouter::receivedIAC));
+    public void testReceivedIAC() {
         commandRouter().receivedIAC();
+        verify(commandManager).receivedIAC();
     }
 
     @Test
-    public void testReceivedStartSubNegotiation() throws Exception {
-        context.checking(new Expectations() {{
-            oneOf(optionCommandManager).getSubNegotiationListener(OPTION_ID); will(returnValue(optionSessionHandler));
-            oneOf(commandManager).receivedStartSubNegotiation(optionSessionHandler);
-        }});
+    public void testReceivedStartSubNegotiation() {
+        when(optionCommandManager.getSubNegotiationListener(OPTION_ID)).thenReturn(optionSessionHandler);
         commandRouter().receivedStartSubNegotiation(OPTION_ID);
+        verify(commandManager).receivedStartSubNegotiation(optionSessionHandler);
     }
 
     @Test
-    public void testReceivedDo() throws Exception {
-        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedDo, OPTION_ID));
+    public void testReceivedDo() {
         commandRouter().receivedDo(OPTION_ID);
+        verify(optionCommandManager).receivedDo(OPTION_ID);
     }
 
     @Test
-    public void testReceivedDont() throws Exception {
-        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedDont, OPTION_ID));
+    public void testReceivedDont() {
         commandRouter().receivedDont(OPTION_ID);
+        verify(optionCommandManager).receivedDont(OPTION_ID);
     }
 
     @Test
-    public void testReceivedWill() throws Exception {
-        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedWill, OPTION_ID));
+    public void testReceivedWill() {
         commandRouter().receivedWill(OPTION_ID);
+        verify(optionCommandManager).receivedWill(OPTION_ID);
     }
 
     @Test
-    public void testReceivedWont() throws Exception {
-        context.checking(oneOf(optionCommandManager, OptionCommandManager::receivedWont, OPTION_ID));
+    public void testReceivedWont() {
         commandRouter().receivedWont(OPTION_ID);
+        verify(optionCommandManager).receivedWont(OPTION_ID);
     }
 
     private CommandRouter commandRouter() {
         return new CommandRouter(sessionListener, commandManager, optionCommandManager);
     }
-
-    private  <T> Expectations oneOf(final T mock, final Consumer<T> action) {
-        return new Expectations() {{
-            action.accept(oneOf(mock));
-        }};
-    }
-    private  <T> Expectations oneOf(final T mock, final ObjIntConsumer<T> action, int param) {
-        return new Expectations() {{
-            action.accept(oneOf(mock), param);
-        }};
-    }
-
 }

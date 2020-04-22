@@ -1,141 +1,137 @@
 package net.virtualinfinity.telnet;
 
-import junit.framework.AssertionFailedError;
-import org.jmock.Expectations;
-import org.jmock.Sequence;
-import org.jmock.auto.Auto;
-import org.jmock.auto.Mock;
-import org.jmock.integration.junit4.JUnitRuleMockery;
-import org.jmock.internal.ExpectationBuilder;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.*;
+
 /**
  * @author Daniel Pitts
  */
+@ExtendWith(MockitoExtension.class)
 public class InputChannelDecoderTest {
     public static final byte OPTION_ID = 10;
-    public static final byte EXTRA_DATA = 44;
-    @Rule
-    public JUnitRuleMockery context = new JUnitRuleMockery();
+    public static final byte EXTRA_DATA1 = 44;
+    public static final byte EXTRA_DATA2 = 45;
+    public static final byte[] EXTRA_DATA1_ARRAY = {EXTRA_DATA1};
+    public static final byte[] EXTRA_DATA2_ARRAY = {EXTRA_DATA2};
 
     @Mock
     private CommandReceiver commandReceiver;
 
-    @Auto
-    private Sequence sequence;
-
     @Test
     public void receivedDo() {
-        context.checking(expectOptionCommand(CommandReceiver::receivedDo));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.DO, OPTION_ID, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.DO, OPTION_ID, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedDo);
     }
 
     @Test
     public void receivedDont() {
-        context.checking(expectOptionCommand(CommandReceiver::receivedDont));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.DONT, OPTION_ID, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.DONT, OPTION_ID, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedDont);
     }
 
     @Test
     public void receivedWill() {
-        context.checking(expectOptionCommand(CommandReceiver::receivedWill));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.WILL, OPTION_ID, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.WILL, OPTION_ID, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedWill);
     }
 
     @Test
     public void receivedWont() {
-        context.checking(expectOptionCommand(CommandReceiver::receivedWont));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.WONT, OPTION_ID, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.WONT, OPTION_ID, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedWont);
     }
 
     @Test
     public void receivedStartSubNegotiation() {
-        context.checking(expectOptionCommand(CommandReceiver::receivedStartSubNegotiation));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.SB, OPTION_ID, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.SB, OPTION_ID, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedStartSubNegotiation);
     }
 
     @Test
     public void receivedEndSubNegotiation() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedEndSubNegotiation));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.SE, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.SE, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedEndSubNegotiation);
     }
 
     @Test
     public void receivedIAC() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedIAC));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.IAC, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.IAC, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedIAC);
     }
 
     @Test
     public void receivedData() {
-        context.checking(new Expectations() {{
-            oneOf(commandReceiver).receivedData(ByteBuffer.wrap(new byte[]{EXTRA_DATA})); inSequence(sequence);
-        }});
-        acceptData(EXTRA_DATA);
+        acceptData(EXTRA_DATA1, EXTRA_DATA2);
+        verify(commandReceiver).receivedData(ByteBuffer.wrap(new byte[]{EXTRA_DATA1, EXTRA_DATA2}));
     }
 
     @Test
     public void receivedBreak() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedBreak));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.BRK, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.BRK, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedBreak);
     }
+
     @Test
     public void receivedInterrupt() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedInterrupt));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.IP, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.IP, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedInterrupt);
     }
 
     @Test
     public void receivedAbortOutput() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedAbortOutput));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.AO, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.AO, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedAbortOutput);
     }
 
     @Test
     public void receivedAreYouThere() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedAreYouThere));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.AYT, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.AYT, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedAreYouThere);
     }
 
     @Test
     public void receivedEraseCharacter() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedEraseCharacter));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.EC, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.EC, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedEraseCharacter);
     }
 
     @Test
     public void receivedEraseLine() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedEraseLine));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.EL, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.EL, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedEraseLine);
     }
 
     @Test
     public void receivedGoAhead() {
-        context.checking(expectSimpleCommand(CommandReceiver::receivedGoAhead));
-        acceptData(EXTRA_DATA, TelnetConstants.IAC, TelnetConstants.GA, EXTRA_DATA);
+        acceptData(EXTRA_DATA1, TelnetConstants.IAC, TelnetConstants.GA, EXTRA_DATA2);
+        verifyReceived(CommandReceiver::receivedGoAhead);
     }
 
-    private void acceptData(byte...data) {
-        new InputChannelDecoder(commandReceiver).accept(ByteBuffer.wrap(data));
+    private void acceptData(byte... data) {
+        final ByteBuffer wrap = ByteBuffer.wrap(data);
+        new InputChannelDecoder(commandReceiver).accept(wrap);
+        assertFalse(wrap.hasRemaining());
+    }
+    private void verifyReceived(ObjIntConsumer<CommandReceiver> command) {
+        verifyReceived(commandReceiver -> command.accept(commandReceiver, OPTION_ID));
     }
 
-    private ExpectationBuilder expectOptionCommand(final ObjIntConsumer<CommandReceiver> optionCommand) {
-        return expectSimpleCommand(commandReceiver -> optionCommand.accept(commandReceiver, OPTION_ID));
-    }
-    private ExpectationBuilder expectSimpleCommand(final Consumer<CommandReceiver> command) {
-        return new Expectations() {{
-            oneOf(commandReceiver).receivedData(ByteBuffer.wrap(new byte[]{EXTRA_DATA})); inSequence(sequence);
-            command.accept(oneOf(commandReceiver)); inSequence(sequence);
-            oneOf(commandReceiver).receivedData(ByteBuffer.wrap(new byte[]{EXTRA_DATA})); inSequence(sequence);
-        }};
-    }
+    private void verifyReceived(Consumer<CommandReceiver> command) {
+        InOrder inOrder = inOrder(commandReceiver);
+        inOrder.verify(commandReceiver).receivedData(ByteBuffer.wrap(EXTRA_DATA1_ARRAY));
+        command.accept(inOrder.verify(commandReceiver));
+        inOrder.verify(commandReceiver).receivedData(ByteBuffer.wrap(EXTRA_DATA2_ARRAY));
 
-
+    }
 
 }
